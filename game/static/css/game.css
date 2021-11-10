@@ -32,3 +32,9 @@
     transform: scale(1.2);
     transition: all 0.2s;
 }
+
+.ac-game-playground {
+    width: 100%;
+    height: 100%;
+    user-select: none;
+}
