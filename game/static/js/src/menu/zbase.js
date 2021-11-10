@@ -43,39 +43,4 @@ class AcGameMenu {
     hide() {
         this.$menu.hide();
     }
-}class AcGamePlayground {
-    constructor(root) {
-        this.root = root;
-        this.$playground = $(`
-<div class="ac-game-playground">
-123    
-</div>
-`);
-        this.root.$ac_game.append(this.$playground);
-        this.start();
-    }
-
-    start() {
-        this.hide(); // 隐藏游戏界面
-    }
-
-    show() {
-        this.$playground.show();
-    }
-
-    hide() {
-        this.$playground.hide();
-    }
-}class AcGame {
-    constructor(id) {
-        this.id = id;
-        this.$ac_game = $('#' + this.id);
-        this.menu = new AcGameMenu(this);
-        this.playground = new AcGamePlayground(this);
-        this.start();
-    }
-
-    start() {
-
-    }
 }

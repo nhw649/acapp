@@ -1,21 +1,17 @@
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>术士之战</title>
     <link rel="stylesheet" href="https://cdn.acwing.com/static/jquery-ui-dist/jquery-ui.min.css">
     <script src="https://cdn.acwing.com/static/jquery/js/jquery-3.3.1.min.js"></script>
-    <link rel="stylesheet" href="{% static 'css/game.css' %}">
     <script src="{% static 'js/dist/game.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'css/game.css' %}">
 </head>
 <body style="margin: 0">
 <div id="ac_game_649"></div>
 <script>
     $(document).ready(function () {
-        console.log(123)
         let ac_game = new AcGame("ac_game_649");
     })
 </script>
 </body>
-</html>
