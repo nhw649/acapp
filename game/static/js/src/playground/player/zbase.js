@@ -20,6 +20,11 @@ class Player extends AcGameObject {
     start() {
         if (this.is_me) { // 是自己才添加鼠标点击移动事件
             this.add_listening_events();
+        } else { // AI
+            // 创建随机移动位置
+            let tx = Math.random() * this.playground.width;
+            let ty = Math.random() * this.playground.height;
+            this.move_to(tx, ty);
         }
     }
 
@@ -73,14 +78,22 @@ class Player extends AcGameObject {
     }
 
     update() {
-        if (this.move_length < this.eps) { // 不需要移动了
+        if (this.move_length < this.eps) { // 已经移动到指定位置,不需要移动了
             this.move_length = 0; // 移动距离置为0
             this.vx = this.vy = 0; // 单位速度置为0
+            if (!this.is_me) {
+                // 如果是AI到头,重新创建随机移动位置
+                let tx = Math.random() * this.playground.width;
+                let ty = Math.random() * this.playground.height;
+                this.move_to(tx, ty);
+            }
         } else { // 需要移动
             let moved = Math.min(this.move_length, this.speed * this.timedelta / 1000); // 真实的需要移动的距离
+            this.move_length -= moved;
             this.x += moved * this.vx; // 确定方向＋移动距离
             this.y += moved * this.vy;
         }
+
         this.render(); // 每一帧都画一个玩家
     }
 

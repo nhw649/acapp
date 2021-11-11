@@ -135,6 +135,11 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
     start() {
         if (this.is_me) { // 是自己才添加鼠标点击移动事件
             this.add_listening_events();
+        } else { // AI
+            // 创建随机移动位置
+            let tx = Math.random() * this.playground.width;
+            let ty = Math.random() * this.playground.height;
+            this.move_to(tx, ty);
         }
     }
 
@@ -188,11 +193,19 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
     }
 
     update() {
+        console.log(this.move_length);
         if (this.move_length < this.eps) { // 不需要移动了
             this.move_length = 0; // 移动距离置为0
             this.vx = this.vy = 0; // 单位速度置为0
+            if (!this.is_me) {
+                // 如果是AI到头,重新创建随机移动位置
+                let tx = Math.random() * this.playground.width;
+                let ty = Math.random() * this.playground.height;
+                this.move_to(tx, ty);
+            }
         } else { // 需要移动
             let moved = Math.min(this.move_length, this.speed * this.timedelta / 1000); // 真实的需要移动的距离
+            this.move_length -= moved;
             this.x += moved * this.vx; // 确定方向＋移动距离
             this.y += moved * this.vy;
         }
@@ -256,7 +269,11 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
         this.game_map = new GameMap(this); // 创建游戏地图
 
         this.players = []; // 保存游戏玩家
-        this.players.push(new Player(this, this.width / 2, this.height / 2, this.height * 0.05, "white", this.height * 0.15, true));
+        this.players.push(new Player(this, this.width / 2, this.height / 2, this.height * 0.05, "white", this.height * 0.15, true)); // 创建自己
+        for (let i = 1; i < 6; i++) {
+            // 创建AI
+            this.players.push(new Player(this, this.width / 2, this.height / 2, this.height * 0.05, "blue", this.height * 0.15, false))
+        }
         this.start();
     }
 
