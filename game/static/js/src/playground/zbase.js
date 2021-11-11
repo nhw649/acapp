@@ -12,7 +12,7 @@ class AcGamePlayground {
 
         this.players = []; // 保存游戏玩家
         this.players.push(new Player(this, this.width / 2, this.height / 2, this.height * 0.05, "white", this.height * 0.15, true)); // 创建自己
-        for (let i = 1; i < 6; i++) {
+        for (let i = 0; i < 5; i++) {
             // 创建AI
             this.players.push(new Player(this, this.width / 2, this.height / 2, this.height * 0.05, "blue", this.height * 0.15, false))
         }

@@ -5,8 +5,12 @@ class Player extends AcGameObject {
         this.ctx = this.playground.game_map.ctx; // 获取context对象
         this.x = x;
         this.y = y;
-        this.vx = 1; // x轴的移动速度
-        this.vy = 1; // y轴的移动速度
+        this.vx = 0; // x轴的移动速度
+        this.vy = 0; // y轴的移动速度
+        this.damage_x = 0; // x轴击退
+        this.damage_y = 0; // y轴击退
+        this.damage_speed = 0; // 击退速度
+        this.friction = 0.9; // 击退摩擦力
         this.radius = radius;
         this.color = color;
         this.speed = speed;
@@ -21,10 +25,12 @@ class Player extends AcGameObject {
         if (this.is_me) { // 是自己才添加鼠标点击移动事件
             this.add_listening_events();
         } else { // AI
-            // 创建随机移动位置
-            let tx = Math.random() * this.playground.width;
-            let ty = Math.random() * this.playground.height;
-            this.move_to(tx, ty);
+            setInterval(() => {
+                // 创建随机移动位置
+                let tx = Math.random() * this.playground.width;
+                let ty = Math.random() * this.playground.height;
+                this.move_to(tx, ty);
+            }, 3000);
         }
     }
 
@@ -61,7 +67,8 @@ class Player extends AcGameObject {
         let vx = Math.cos(angle);
         let vy = Math.sin(angle);
         let move_length = this.playground.height * 1.3; // 火球移动距离
-        new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length); // 创建火球
+        // 创建火球,伤害值比例是玩家半径比例的20%,相当于可打掉玩家20%血量
+        new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, this.playground.height * 0.01);
     }
 
     move_to(tx, ty) {
@@ -71,6 +78,19 @@ class Player extends AcGameObject {
         this.vy = Math.sin(angle); // 单位y轴速度
     }
 
+    is_attacked(angle, damage) { // 被攻击触发效果
+        this.radius -= damage; // 玩家血量(半径)减少
+        if (this.radius < 10) {
+            this.destroy(); // 玩家死亡
+            return false;
+        }
+        // 击退效果
+        this.damage_x = Math.cos(angle);
+        this.damage_y = Math.sin(angle);
+        this.damage_speed = damage * 50;
+        this.speed *= 0.8; // 血量减少移速变慢
+    }
+
     get_dist(x1, y1, x2, y2) { // 获取两点距离
         let dx = x2 - x1;
         let dy = y2 - y1;
@@ -78,20 +98,30 @@ class Player extends AcGameObject {
     }
 
     update() {
-        if (this.move_length < this.eps) { // 已经移动到指定位置,不需要移动了
-            this.move_length = 0; // 移动距离置为0
-            this.vx = this.vy = 0; // 单位速度置为0
-            if (!this.is_me) {
-                // 如果是AI到头,重新创建随机移动位置
-                let tx = Math.random() * this.playground.width;
-                let ty = Math.random() * this.playground.height;
-                this.move_to(tx, ty);
+        if (this.damage_speed > 10) {
+            // 击退时不受控制
+            this.vx = this.vy = 0;
+            this.move_length = 0;
+            // 击退位移
+            this.x += this.damage_x * this.damage_speed * this.timedelta / 1000;
+            this.y += this.damage_y * this.damage_speed * this.timedelta / 1000;
+            this.damage_speed *= this.friction; // 击退速度减少
+        } else {
+            if (this.move_length < this.eps) { // 已经移动到指定位置,不需要移动了
+                this.move_length = 0; // 移动距离置为0
+                this.vx = this.vy = 0; // 单位速度置为0
+                if (!this.is_me) {
+                    // 如果是AI到头,重新创建随机移动位置
+                    let tx = Math.random() * this.playground.width;
+                    let ty = Math.random() * this.playground.height;
+                    this.move_to(tx, ty);
+                }
+            } else { // 需要移动
+                let moved = Math.min(this.move_length, this.speed * this.timedelta / 1000); // 真实的需要移动的距离
+                this.move_length -= moved;
+                this.x += moved * this.vx; // 确定方向＋移动距离
+                this.y += moved * this.vy;
             }
-        } else { // 需要移动
-            let moved = Math.min(this.move_length, this.speed * this.timedelta / 1000); // 真实的需要移动的距离
-            this.move_length -= moved;
-            this.x += moved * this.vx; // 确定方向＋移动距离
-            this.y += moved * this.vy;
         }
 
         this.render(); // 每一帧都画一个玩家
