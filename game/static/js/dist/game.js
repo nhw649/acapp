@@ -215,6 +215,9 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
 
 
     shoot_fireball(tx, ty) {
+        if (this.playground.players.indexOf(this) === -1) { // 玩家死亡不能发射火球
+            return;
+        }
         let x = this.x;
         let y = this.y;
         let radius = this.playground.height * 0.01;
@@ -267,7 +270,6 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
 
     update() {
         this.spend_time += this.timedelta / 1000;
-        console.log(Math.random())
         if (!this.is_me && this.spend_time > 4 && Math.random() < 1 / 300) { // AI自动攻击
             let player = this.playground.players[Math.floor(Math.random() * this.playground.players.length)];
             while (player === this) { // AI不能攻击自己
@@ -278,9 +280,7 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
             }
             let tx = player.x + this.vx * this.speed * this.timedelta / 1000 * 0.3; // 预估下一时刻玩家位置
             let ty = player.y + this.vy * this.speed * this.timedelta / 1000 * 0.3;
-            if (this.playground.players.length !== 1) { // 只剩一个的时候,AI不能攻击
-                this.shoot_fireball(tx, ty);
-            }
+            this.shoot_fireball(tx, ty);
         }
         if (this.damage_speed > 10) {
             // 击退时不受控制
