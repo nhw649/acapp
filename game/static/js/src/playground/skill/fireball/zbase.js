@@ -7,8 +7,8 @@ class FireBall extends AcGameObject {
         this.x = x;
         this.y = y;
         this.radius = radius; // 火球半径
-        this.vx = vx; // 火球x轴移动速度
-        this.vy = vy; // 火球y轴移动速度
+        this.vx = vx; // 火球x轴移动速度方向
+        this.vy = vy; // 火球y轴移动速度方向
         this.color = color;
         this.speed = speed; // 火球移动速度
         this.move_length = move_length; // 火球移动距离

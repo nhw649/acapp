@@ -46,4 +46,5 @@ let AC_GAME_ANIMATION = (timestamp) => {
     last_timestamp = timestamp;
     requestAnimationFrame(AC_GAME_ANIMATION); // 递归调用
 }
+// 按帧对网页进行重绘
 requestAnimationFrame(AC_GAME_ANIMATION);

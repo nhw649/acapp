@@ -5,8 +5,8 @@ class Player extends AcGameObject {
         this.ctx = this.playground.game_map.ctx; // 获取context对象
         this.x = x;
         this.y = y;
-        this.vx = 0; // x轴的移动速度
-        this.vy = 0; // y轴的移动速度
+        this.vx = 0; // x轴的移动速度方向
+        this.vy = 0; // y轴的移动速度方向
         this.damage_x = 0; // x轴击退
         this.damage_y = 0; // y轴击退
         this.damage_speed = 0; // 击退速度
@@ -18,6 +18,7 @@ class Player extends AcGameObject {
         this.move_length = 0; // 保存两点之间的距离
         this.eps = 0.1; // 用来和移动距离进行比较
 
+        this.spend_time = 0; // 倒计时开始
         this.cur_skill = null; // 存储技能
     }
 
@@ -79,6 +80,17 @@ class Player extends AcGameObject {
     }
 
     is_attacked(angle, damage) { // 被攻击触发效果
+        // 粒子效果
+        for (let i = 0; i < Math.random() * 5 + 10; i++) {
+            let x = this.x, y = this.y;
+            let radius = this.radius * Math.random() * 0.7;
+            let color = this.color;
+            let angle = Math.PI * 2 * Math.random();
+            let vx = Math.cos(angle), vy = Math.sin(angle);
+            let speed = this.speed * 6;
+            let move_length = this.radius * Math.random() * 10;
+            new Particle(this.playground, x, y, radius, color, vx, vy, speed, move_length);
+        }
         this.radius -= damage; // 玩家血量(半径)减少
         if (this.radius < 10) {
             this.destroy(); // 玩家死亡
@@ -98,6 +110,22 @@ class Player extends AcGameObject {
     }
 
     update() {
+        this.spend_time += this.timedelta / 1000;
+        console.log(Math.random())
+        if (!this.is_me && this.spend_time > 4 && Math.random() < 1 / 300) { // AI自动攻击
+            let player = this.playground.players[Math.floor(Math.random() * this.playground.players.length)];
+            while (player === this) { // AI不能攻击自己
+                player = this.playground.players[Math.floor(Math.random() * this.playground.players.length)];
+                if (this.playground.players.length === 1) { // 防止死循环
+                    break;
+                }
+            }
+            let tx = player.x + this.vx * this.speed * this.timedelta / 1000 * 0.3; // 预估下一时刻玩家位置
+            let ty = player.y + this.vy * this.speed * this.timedelta / 1000 * 0.3;
+            if (this.playground.players.length !== 1) { // 只剩一个的时候,AI不能攻击
+                this.shoot_fireball(tx, ty);
+            }
+        }
         if (this.damage_speed > 10) {
             // 击退时不受控制
             this.vx = this.vy = 0;
@@ -118,13 +146,20 @@ class Player extends AcGameObject {
                 }
             } else { // 需要移动
                 let moved = Math.min(this.move_length, this.speed * this.timedelta / 1000); // 真实的需要移动的距离
-                this.move_length -= moved;
                 this.x += moved * this.vx; // 确定方向＋移动距离
                 this.y += moved * this.vy;
+                this.move_length -= moved;
             }
         }
-
         this.render(); // 每一帧都画一个玩家
+    }
+
+    on_destroy() { // 玩家死亡从玩家列表中删除
+        for (let i = 0; i < this.playground.players.length; i++) {
+            if (this.playground.players[i] === this) {
+                this.playground.players.splice(i, 1);
+            }
+        }
     }
 
     render() {

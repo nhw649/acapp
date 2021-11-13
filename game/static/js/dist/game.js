@@ -91,6 +91,7 @@ let AC_GAME_ANIMATION = (timestamp) => {
     last_timestamp = timestamp;
     requestAnimationFrame(AC_GAME_ANIMATION); // 递归调用
 }
+// 按帧对网页进行重绘
 requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
     constructor(playground) {
         super(); // 相当于将自己注册到了AC_GAME_OBJECTS数组中
@@ -113,6 +114,46 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
         this.ctx.fillStyle = "rgba(0,0,0,0.2)";
         this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
     }
+}class Particle extends AcGameObject {
+    constructor(playground, x, y, radius, color, vx, vy, speed, move_length) {
+        super();
+        this.playground = playground;
+        this.ctx = this.playground.game_map.ctx;
+        this.x = x;
+        this.y = y;
+        this.radius = radius;
+        this.vx = vx;
+        this.vy = vy;
+        this.color = color;
+        this.speed = speed;
+        this.move_length = move_length;
+        this.friction = 0.9;
+        this.eps = 100; // 用来进行比较
+    }
+
+    start() {
+
+    }
+
+    update() {
+        if (this.speed < this.eps) {
+            this.destroy();
+            return false;
+        }
+        let moved = Math.min(this.move_length, this.speed * this.timedelta / 1000);
+        this.x += this.vx * moved;
+        this.y += this.vy * moved;
+        this.move_length -= moved;
+        this.speed *= this.friction;
+        this.render();
+    }
+
+    render() {
+        this.ctx.beginPath();
+        this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+        this.ctx.fillStyle = this.color;
+        this.ctx.fill();
+    }
 }class Player extends AcGameObject {
     constructor(playground, x, y, radius, color, speed, is_me) {
         super();
@@ -120,8 +161,8 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
         this.ctx = this.playground.game_map.ctx; // 获取context对象
         this.x = x;
         this.y = y;
-        this.vx = 0; // x轴的移动速度
-        this.vy = 0; // y轴的移动速度
+        this.vx = 0; // x轴的移动速度方向
+        this.vy = 0; // y轴的移动速度方向
         this.damage_x = 0; // x轴击退
         this.damage_y = 0; // y轴击退
         this.damage_speed = 0; // 击退速度
@@ -133,6 +174,7 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
         this.move_length = 0; // 保存两点之间的距离
         this.eps = 0.1; // 用来和移动距离进行比较
 
+        this.spend_time = 0; // 倒计时开始
         this.cur_skill = null; // 存储技能
     }
 
@@ -194,6 +236,17 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
     }
 
     is_attacked(angle, damage) { // 被攻击触发效果
+        // 粒子效果
+        for (let i = 0; i < Math.random() * 5 + 10; i++) {
+            let x = this.x, y = this.y;
+            let radius = this.radius * Math.random() * 0.7;
+            let color = this.color;
+            let angle = Math.PI * 2 * Math.random();
+            let vx = Math.cos(angle), vy = Math.sin(angle);
+            let speed = this.speed * 6;
+            let move_length = this.radius * Math.random() * 10;
+            new Particle(this.playground, x, y, radius, color, vx, vy, speed, move_length);
+        }
         this.radius -= damage; // 玩家血量(半径)减少
         if (this.radius < 10) {
             this.destroy(); // 玩家死亡
@@ -213,6 +266,22 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
     }
 
     update() {
+        this.spend_time += this.timedelta / 1000;
+        console.log(Math.random())
+        if (!this.is_me && this.spend_time > 4 && Math.random() < 1 / 300) { // AI自动攻击
+            let player = this.playground.players[Math.floor(Math.random() * this.playground.players.length)];
+            while (player === this) { // AI不能攻击自己
+                player = this.playground.players[Math.floor(Math.random() * this.playground.players.length)];
+                if (this.playground.players.length === 1) { // 防止死循环
+                    break;
+                }
+            }
+            let tx = player.x + this.vx * this.speed * this.timedelta / 1000 * 0.3; // 预估下一时刻玩家位置
+            let ty = player.y + this.vy * this.speed * this.timedelta / 1000 * 0.3;
+            if (this.playground.players.length !== 1) { // 只剩一个的时候,AI不能攻击
+                this.shoot_fireball(tx, ty);
+            }
+        }
         if (this.damage_speed > 10) {
             // 击退时不受控制
             this.vx = this.vy = 0;
@@ -233,13 +302,20 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
                 }
             } else { // 需要移动
                 let moved = Math.min(this.move_length, this.speed * this.timedelta / 1000); // 真实的需要移动的距离
-                this.move_length -= moved;
                 this.x += moved * this.vx; // 确定方向＋移动距离
                 this.y += moved * this.vy;
+                this.move_length -= moved;
             }
         }
-
         this.render(); // 每一帧都画一个玩家
+    }
+
+    on_destroy() { // 玩家死亡从玩家列表中删除
+        for (let i = 0; i < this.playground.players.length; i++) {
+            if (this.playground.players[i] === this) {
+                this.playground.players.splice(i, 1);
+            }
+        }
     }
 
     render() {
@@ -257,8 +333,8 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
         this.x = x;
         this.y = y;
         this.radius = radius; // 火球半径
-        this.vx = vx; // 火球x轴移动速度
-        this.vy = vy; // 火球y轴移动速度
+        this.vx = vx; // 火球x轴移动速度方向
+        this.vy = vy; // 火球y轴移动速度方向
         this.color = color;
         this.speed = speed; // 火球移动速度
         this.move_length = move_length; // 火球移动距离
@@ -329,12 +405,17 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
         this.game_map = new GameMap(this); // 创建游戏地图
 
         this.players = []; // 保存游戏玩家
-        this.players.push(new Player(this, this.width / 2, this.height / 2, this.height * 0.05, "white", this.height * 0.15, true)); // 创建自己
-        for (let i = 0; i < 5; i++) {
+        this.players.push(new Player(this, this.width / 2, this.height / 2, this.height * 0.05, "white", this.height * 0.2, true)); // 创建自己
+        for (let i = 0; i < 10; i++) {
             // 创建AI
-            this.players.push(new Player(this, this.width / 2, this.height / 2, this.height * 0.05, "blue", this.height * 0.15, false))
+            this.players.push(new Player(this, this.width / 2, this.height / 2, this.height * 0.05, this.get_random_color(), this.height * 0.2, false))
         }
         this.start();
+    }
+
+    get_random_color() {
+        let color = ["blue", "pink", "yellow", "red", "grey", "green"];
+        return color[Math.floor(Math.random() * 6)];
     }
 
     start() {
