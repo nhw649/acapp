@@ -6,41 +6,52 @@ class AcGameMenu {
     <div class="ac-game-menu-field">
         <div class="menu-field-item menu-field-item-single">单人模式</div>
         <br>
+        <br>
         <div class="menu-field-item menu-field-item-multi">多人模式</div>
         <br>
-        <div class="menu-field-item menu-field-item-settings">设置</div>
+        <br>
+        <div class="menu-field-item menu-field-item-settings">退出</div>
     </div>
 </div>
 `);
-        this.root.$ac_game.append(this.$menu);
+        this.$menu.hide(); // 用户登录后才显示
+        this.root.$ac_game.append(this.$menu); // 将菜单渲染到界面上
         this.$single = this.$menu.find(".menu-field-item-single");
         this.$multi = this.$menu.find(".menu-field-item-multi");
         this.$settings = this.$menu.find(".menu-field-item-settings");
         this.start();
     }
 
-    start() {
+    start () {
         this.add_listening_events();
     }
 
-    add_listening_events() {
+    add_listening_events () {
         this.$single.click(() => {
-            this.root.playground.show();
+            this.root.playground.show(); // 显示游戏场景
             this.hide();
         });
         this.$multi.click(() => {
             console.log("multi")
         });
         this.$settings.click(() => {
-            console.log("settings")
+            $.ajax({
+                url: "https://app372.acapp.acwing.com.cn/settings/logout/",
+                type: "GET",
+                success: function (res) {
+                    if (res.result === "success") { // 已登录
+                        location.reload();
+                    } 
+                }
+            })
         })
     }
 
-    show() {
+    show () {
         this.$menu.show();
     }
 
-    hide() {
+    hide () {
         this.$menu.hide();
     }
 }

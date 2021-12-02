@@ -5,20 +5,19 @@ class AcGamePlayground {
 <div class="ac-game-playground"></div>
 `);
         this.root.$ac_game.append(this.$playground);
-        this.hide();
         this.start();
     }
 
-    get_random_color () {
+    get_random_color() {
         let color = ["blue", "pink", "yellow", "red", "grey", "green"];
         return color[Math.floor(Math.random() * 6)];
     }
 
-    start () {
+    start() {
         this.hide(); // 隐藏游戏界面
     }
 
-    show () {
+    show() {
         this.$playground.show();
         this.width = this.$playground.width(); // 存储界面的宽度
         this.height = this.$playground.height(); // 存储界面的高度
@@ -32,7 +31,7 @@ class AcGamePlayground {
         }
     }
 
-    hide () {
+    hide() {
         this.$playground.hide();
     }
 }

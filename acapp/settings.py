@@ -22,9 +22,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-c0n+f2y+#7=vc9zwyh(!rb0c5asb_cd$-kp86&4uq$6^-*5ne^'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = ["81.68.146.204","app372.acapp.acwing.com.cn"]
+ALLOWED_HOSTS = ["81.68.146.204", "app372.acapp.acwing.com.cn"]
 
 # Application definition
 
@@ -53,8 +53,7 @@ ROOT_URLCONF = 'acapp.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'game/templates']
-        ,
+        'DIRS': [BASE_DIR / 'game/templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -101,6 +100,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
+# LANGUAGE_CODE = 'zh-hans'
 
 TIME_ZONE = 'Asia/Shanghai'
 

@@ -38,3 +38,99 @@
     height: 100%;
     user-select: none;
 }
+
+.acgame-settings {
+    background: url("https://app372.acapp.acwing.com.cn/static/image/settings/login_background.gif") center no-repeat;
+    background-size: cover;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.acgame-settings .settings-login {
+    background-color: rgba(247, 247, 247, 0.9);
+    margin: 15vh auto;
+    padding: 4vh 5vw;
+    box-sizing: border-box;
+    width: 40vw;
+    height: 70vh;
+    border-radius: 25px;
+}
+
+.acgame-settings .settings-login .login-tittle {
+    text-align: center;
+    font-size: 25px;
+    font-weight: 600;
+}
+
+.acgame-settings .settings-login .login-item {
+    margin-top: 5vh;
+}
+
+.acgame-settings .settings-login .login-error-message {
+    margin-top: 3vh;
+    float: left;
+    color: red;
+}
+
+.acgame-settings .settings-login .login-register {
+    margin-top: 3vh;
+    float: right;
+}
+
+.acgame-settings .settings-login .login-register p {
+    cursor: pointer;
+    user-select: none;
+}
+
+.acgame-settings .settings-login .login-submit button {
+    display: block;
+    width: 100%;
+}
+
+.acgame-settings .settings-login .login-third-party {
+    margin-top: 5vh;
+    text-align: center;
+}
+
+.acgame-settings .settings-login .login-third-party img {
+    width: 2vw;
+    cursor: pointer;
+}
+
+.acgame-settings .settings-register {
+    display: none;
+    background-color: rgba(247, 247, 247, 0.9);
+    margin: 15vh auto;
+    padding: 3vh 5vw;
+    box-sizing: border-box;
+    width: 40vw;
+    height: 70vh;
+    border-radius: 25px;
+}
+
+.acgame-settings .settings-register .register-tittle {
+    text-align: center;
+    font-size: 25px;
+    font-weight: 600;
+}
+
+.acgame-settings .settings-register .register-item {
+    margin-top: 3vh;
+}
+
+.acgame-settings .settings-register .register-error-message {
+    margin-top: 3vh;
+    float: left;
+}
+
+.acgame-settings .settings-register .register-submit button {
+    display: block;
+    width: 100%;
+}
+
+.acgame-settings .settings-register .register-back button {
+    display: block;
+    width: 100%;
+    border: none;
+    background-color: rgba(0, 105, 217, 0.5);
+}

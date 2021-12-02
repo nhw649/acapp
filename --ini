@@ -1,0 +1,52 @@
+*** Starting uWSGI 2.0.20 (64bit) on [Wed Dec  1 23:36:08 2021] ***
+compiled with version: 9.3.0 on 28 October 2021 05:02:51
+os: Linux-5.4.0-77-generic #86-Ubuntu SMP Thu Jun 17 02:35:03 UTC 2021
+nodename: 6df8ea9444ba
+machine: x86_64
+clock source: unix
+detected number of CPU cores: 1
+current working directory: /home/django_nhw/acapp
+detected binary path: /usr/local/bin/uwsgi
+!!! no internal routing support, rebuild with pcre support !!!
+chdir() to /home/django_nhw/acapp
+your memory page size is 4096 bytes
+detected max file descriptor number: 1048576
+lock engine: pthread robust mutexes
+thunder lock: disabled (you can enable it with --thunder-lock)
+uwsgi socket 0 bound to TCP address 127.0.0.1:8000 fd 3
+Python version: 3.8.10 (default, Sep 28 2021, 16:10:42)  [GCC 9.3.0]
+Python main interpreter initialized at 0x563cfd49f0b0
+python threads support enabled
+your server socket listen backlog is limited to 100 connections
+your mercy for graceful operations on workers is 60 seconds
+mapped 344232 bytes (336 KB) for 10 cores
+*** Operational MODE: preforking+threaded ***
+WSGI app 0 (mountpoint='') ready in 1 seconds on interpreter 0x563cfd49f0b0 pid: 1171 (default app)
+*** uWSGI is running in multiple interpreter mode ***
+spawned uWSGI master process (pid: 1171)
+spawned uWSGI worker 1 (pid: 1173, cores: 5)
+spawned uWSGI worker 2 (pid: 1174, cores: 5)
+*** Starting uWSGI 2.0.20 (64bit) on [Wed Dec  1 23:37:00 2021] ***
+compiled with version: 9.3.0 on 28 October 2021 05:02:51
+os: Linux-5.4.0-77-generic #86-Ubuntu SMP Thu Jun 17 02:35:03 UTC 2021
+nodename: 6df8ea9444ba
+machine: x86_64
+clock source: unix
+detected number of CPU cores: 1
+current working directory: /home/django_nhw/acapp
+detected binary path: /usr/local/bin/uwsgi
+!!! no internal routing support, rebuild with pcre support !!!
+chdir() to /home/django_nhw/acapp
+your memory page size is 4096 bytes
+detected max file descriptor number: 1048576
+lock engine: pthread robust mutexes
+thunder lock: disabled (you can enable it with --thunder-lock)
+probably another instance of uWSGI is running on the same address (127.0.0.1:8000).
+bind(): Address already in use [core/socket.c line 769]
+[pid: 1173|app: 0|req: 1/1] 106.85.77.126 () {58 vars in 1169 bytes} [Wed Dec  1 23:39:10 2021] GET / => generated 609 bytes in 93 msecs (HTTP/1.1 200) 5 headers in 166 bytes (1 switches on core 0)
+Wed Dec  1 23:39:27 2021 - uWSGI worker 1 screams: UAAAAAAH my master disconnected: i will kill myself !!!
+Wed Dec  1 23:39:27 2021 - uWSGI worker 2 screams: UAAAAAAH my master disconnected: i will kill myself !!!
+Wed Dec  1 23:39:27 2021 - uWSGI worker 1 screams: UAAAAAAH my master disconnected: i will kill myself !!!
+Wed Dec  1 23:39:27 2021 - uWSGI worker 2 screams: UAAAAAAH my master disconnected: i will kill myself !!!
+Wed Dec  1 23:39:27 2021 - uWSGI worker 1 screams: UAAAAAAH my master disconnected: i will kill myself !!!
+Wed Dec  1 23:39:27 2021 - uWSGI worker 2 screams: UAAAAAAH my master disconnected: i will kill myself !!!
