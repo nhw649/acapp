@@ -89,35 +89,62 @@ class Settings {
         this.$register_username = this.$settings.find(".register-username input");
         this.$register_password = this.$settings.find(".register-password input");
         this.$register_confirm_password = this.$settings.find(".register-confirm-password input");
-        this.$register_confirm_password = this.$settings.find(".register-error-message p");
+        this.$register_error_message = this.$settings.find(".register-error-message p");
         this.$register_submit = this.$settings.find(".register-submit button");
         this.$register_back = this.$settings.find(".register-back button");
         this.$register.hide();
 
+        this.$login_third_party = this.$settings.find(".login-third-party"); // 一键登录
         this.root.$ac_game.append(this.$settings); // 添加到页面上
         this.start();
     }
 
-    add_listening_events () { // 事件监听
+    add_listening_events() { // 事件监听
         this.add_listening_events_login();
         this.add_listening_events_register();
+        this.$login_third_party.click(() => {
+            this.user_login_third()
+        })
     }
 
-    add_listening_events_login () {
+    add_listening_events_login() { // 登录相关事件
         this.$login_register.click(() => {
             this.$login.fadeOut(300);
             this.$register.fadeIn(300);
         });
-        console.log(this.$login_submit);
         this.$login_submit.click(() => {
             this.user_login();
+        });
+    }
+
+    add_listening_events_register() { // 注册相关事件
+        this.$register_back.click(() => {
+            this.$register.fadeOut(300);
+            this.$login.fadeIn(300);
+        });
+        this.$register_submit.click(() => {
+            this.user_register();
+        });
+    }
+
+    user_login_third() {
+        $.ajax({
+            url: "https://app372.acapp.acwing.com.cn/settings/acwing/web/apply_code/",
+            type: "GET",
+            success: function (res) {
+                if (res.result === "success") {
+                    location.replace(res.apply_code_url)
+                }
+            }
         })
     }
 
-    user_login () {
+    user_login() {
         let username = this.$login_username.val();
         let password = this.$login_password.val();
-        this.$login_error_message.empty();
+        if (this.$login_error_message.text()) {
+            this.$login_error_message.empty(); // 清空错误信息
+        }
         let outer = this;
         $.ajax({
             url: "https://app372.acapp.acwing.com.cn/settings/login/",
@@ -136,37 +163,61 @@ class Settings {
         })
     }
 
-    user_logout () {
-
-    }
-
-    user_register () {
-
-    }
-
-    add_listening_events_register () {
-        this.$register_back.click(() => {
-            this.$register.fadeOut(300);
-            this.$login.fadeIn(300);
+    user_logout() {
+        if (this.platform === "ACAPP") return false;
+        $.ajax({
+            url: "https://app372.acapp.acwing.com.cn/settings/logout/",
+            type: "GET",
+            success: function (res) {
+                if (res.result === "success") { // 已登录
+                    location.reload();
+                }
+            }
         })
     }
 
-    start () {
+    user_register() {
+        let username = this.$register_username.val();
+        let password = this.$register_password.val();
+        let confirm_password = this.$register_confirm_password.val();
+        if (this.$register_error_message.text()) {
+            this.$register_error_message.empty(); // 清空错误信息
+        }
+        let outer = this;
+        $.ajax({
+            url: "https://app372.acapp.acwing.com.cn/settings/register/",
+            type: "GET",
+            data: {
+                "username": username,
+                "password": password,
+                "confirm_password": confirm_password
+            },
+            success: function (res) {
+                if (res.result === "success") { // 已登录
+                    location.reload(); // 登录成功后刷新
+                } else {
+                    outer.$register_error_message.html(res.result);
+                }
+            }
+        })
+    }
+
+    start() {
         this.getinfo();
         this.add_listening_events();
     }
 
-    register () { // 打开注册界面
+    register() { // 打开注册界面
         this.$login.hide();
         this.$register.show();
     }
 
-    login () { // 打开登录界面
+    login() { // 打开登录界面
         this.$register.hide();
         this.$login.show();
     }
 
-    getinfo () {
+    getinfo() {
         let outer = this;
         // 从服务器获取用户信息
         $.ajax({
@@ -177,9 +228,9 @@ class Settings {
             },
             success: function (res) {
                 if (res.result === "success") { // 已登录
+                    console.log(res);
                     outer.username = res.username;
                     outer.photo = res.photo;
-                    console.log(outer);
                     outer.hide();
                     outer.root.menu.show();
                 } else { // 未登录
@@ -189,7 +240,9 @@ class Settings {
         })
     }
 
-    hide () { }
+    hide() {
+    }
 
-    show () { }
+    show() {
+    }
 }

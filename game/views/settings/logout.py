@@ -4,7 +4,7 @@ from django.http import JsonResponse
 
 def userLogout(request):
     user = request.user  # 获取用户
-    if not user.is_authenticated:
+    if not user.is_authenticated:  # 判断用户是否登录
         return JsonResponse({
             "result": "success"
         })

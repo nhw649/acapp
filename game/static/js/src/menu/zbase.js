@@ -35,15 +35,7 @@ class AcGameMenu {
             console.log("multi")
         });
         this.$settings.click(() => {
-            $.ajax({
-                url: "https://app372.acapp.acwing.com.cn/settings/logout/",
-                type: "GET",
-                success: function (res) {
-                    if (res.result === "success") { // 已登录
-                        location.reload();
-                    }
-                }
-            })
+            this.root.settings.user_logout();
         })
     }
 
