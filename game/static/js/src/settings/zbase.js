@@ -103,7 +103,7 @@ class Settings {
         this.add_listening_events_login();
         this.add_listening_events_register();
         this.$login_third_party.click(() => {
-            this.user_login_third()
+            this.user_login_third();
         })
     }
 
@@ -203,8 +203,12 @@ class Settings {
     }
 
     start() {
-        this.getinfo();
-        this.add_listening_events();
+        if (this.platform === "web") {
+            this.getinfo_web();
+            this.add_listening_events();
+        } else {
+            this.getinfo_acapp();
+        }
     }
 
     register() { // 打开注册界面
@@ -217,7 +221,7 @@ class Settings {
         this.$login.show();
     }
 
-    getinfo() {
+    getinfo_web() {
         let outer = this;
         // 从服务器获取用户信息
         $.ajax({
@@ -228,7 +232,6 @@ class Settings {
             },
             success: function (res) {
                 if (res.result === "success") { // 已登录
-                    console.log(res);
                     outer.username = res.username;
                     outer.photo = res.photo;
                     outer.hide();
@@ -238,6 +241,32 @@ class Settings {
                 }
             }
         })
+    }
+
+    getinfo_acapp() {
+        let outer = this;
+        $.ajax({
+            url: "https://app372.acapp.acwing.com.cn/settings/acwing/acapp/apply_code/",
+            type: "GET",
+            success: function (res) {
+                if (res.result === "success") {
+                    outer.acapp_login(res.appid, res.redirect_uri, res.scope, res.state);
+                }
+            }
+        })
+    }
+
+    acapp_login(appid, redirect_uri, scope, state) {
+        let outer = this;
+        this.root.AcWingOS.api.oauth2.authorize(appid, redirect_uri, scope, state, function (res) {
+            // redirect_uri返回后的回调函数
+            if (res.result === "success") {
+                outer.username = res.username;
+                outer.photo = res.photo;
+                outer.hide();
+                outer.root.menu.show();
+            }
+        });
     }
 
     hide() {

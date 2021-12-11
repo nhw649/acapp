@@ -16,31 +16,30 @@ class Player extends AcGameObject {
         this.speed = speed;
         this.is_me = is_me;
         this.move_length = 0; // 保存两点之间的距离
-        this.eps = 0.1; // 用来和移动距离进行比较
+        this.eps = 0.01; // 用来和移动距离进行比较
 
         this.spend_time = 0; // 倒计时开始
         this.cur_skill = null; // 存储技能
-
         if (this.is_me) { // 是自己才使用头像
             this.img = new Image();
             this.img.src = this.playground.root.settings.photo;
         }
     }
 
-    start () {
+    start() {
         if (this.is_me) { // 是自己才添加鼠标点击移动事件
             this.add_listening_events();
         } else { // AI
             setInterval(() => {
                 // 创建随机移动位置
-                let tx = Math.random() * this.playground.width;
-                let ty = Math.random() * this.playground.height;
+                let tx = Math.random() * this.playground.width / this.playground.scale;
+                let ty = Math.random() * this.playground.height / this.playground.scale;
                 this.move_to(tx, ty);
             }, 5000);
         }
     }
 
-    add_listening_events () {
+    add_listening_events() {
         this.playground.game_map.$canvas.on("contextmenu", function () {
             return false; // 防止右键出现菜单选项
         })
@@ -48,48 +47,47 @@ class Player extends AcGameObject {
             const rect = this.ctx.canvas.getBoundingClientRect(); // 返回元素的大小及其相对于视口的位置
 
             if (e.which === 3) { // 右键移动
-                this.move_to(e.clientX - rect.left, e.clientY - rect.top);
+                this.move_to((e.clientX - rect.left) / this.playground.scale, (e.clientY - rect.top) / this.playground.scale);
             } else if (e.which === 1) { // 左键发射技能
                 if (this.cur_skill === "fireball") { // 火球技能
-                    this.shoot_fireball(e.clientX - rect.left, e.clientY - rect.top);
+                    this.shoot_fireball((e.clientX - rect.left) / this.playground.scale, (e.clientY - rect.top) / this.playground.scale);
                 }
                 this.cur_skill = null; // 清空
             }
         })
         $(window).keydown((e) => {
-            if (e.keyCode === 81 && this.radius >= 10) {
+            if (e.keyCode === 81 && this.radius >= this.eps) {
                 this.cur_skill = "fireball";
                 return false;
             }
         })
     }
 
-
-    shoot_fireball (tx, ty) {
+    shoot_fireball(tx, ty) {
         // if (this.playground.players.indexOf(this) === -1) { // 玩家死亡不能发射火球
         //     return;
         // }
         let x = this.x;
         let y = this.y;
-        let radius = this.playground.height * 0.01;
+        let radius = 0.01;
         let angle = Math.atan2(ty - this.y, tx - this.x);
-        let speed = this.playground.height * 0.5;
+        let speed = 0.5;
         let color = "orange";
         let vx = Math.cos(angle);
         let vy = Math.sin(angle);
-        let move_length = this.playground.height * 1.3; // 火球移动距离
+        let move_length = 1.3; // 火球移动距离
         // 创建火球,伤害值比例是玩家半径比例的20%,相当于可打掉玩家20%血量
-        new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, this.playground.height * 0.01);
+        new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 0.01);
     }
 
-    move_to (tx, ty) {
+    move_to(tx, ty) {
         this.move_length = this.get_dist(this.x, this.y, tx, ty); // 两点之间的距离
         let angle = Math.atan2(ty - this.y, tx - this.x); // 角度方向
         this.vx = Math.cos(angle); // 单位x轴速度
         this.vy = Math.sin(angle); // 单位y轴速度
     }
 
-    is_attacked (angle, damage) { // 被攻击触发效果
+    is_attacked(angle, damage) { // 被攻击触发效果
         // 粒子效果
         for (let i = 0; i < Math.random() * 5 + 10; i++) {
             let x = this.x,
@@ -104,7 +102,7 @@ class Player extends AcGameObject {
             new Particle(this.playground, x, y, radius, color, vx, vy, speed, move_length);
         }
         this.radius -= damage; // 玩家血量(半径)减少
-        if (this.radius < 10) {
+        if (this.radius < this.eps) {
             this.destroy(); // 玩家死亡
             return false;
         }
@@ -115,13 +113,18 @@ class Player extends AcGameObject {
         this.speed *= 0.8; // 血量减少移速变慢
     }
 
-    get_dist (x1, y1, x2, y2) { // 获取两点距离
+    get_dist(x1, y1, x2, y2) { // 获取两点距离
         let dx = x2 - x1;
         let dy = y2 - y1;
         return Math.sqrt(dx * dx + dy * dy);
     }
 
-    update () {
+    update() {
+        this.update_move();
+        this.render(); // 每一帧都画一个玩家
+    }
+
+    update_move() { // 更新玩家移动
         this.spend_time += this.timedelta / 1000;
         if (!this.is_me && this.spend_time > 4 && Math.random() < 1 / 100) { // AI自动攻击
             let player = this.playground.players[Math.floor(Math.random() * this.playground.players.length)];
@@ -135,10 +138,11 @@ class Player extends AcGameObject {
             let ty = player.y + this.vy * this.speed * this.timedelta / 1000 * 0.3;
             this.shoot_fireball(tx, ty);
         }
-        if (this.damage_speed > 10) {
+        if (this.damage_speed > this.eps) {
             // 击退时不受控制
             this.vx = this.vy = 0;
-            this.move_length = 0;
+            this.move_length = 0; // 无法移动
+            this.cur_skill = null; // 击退时不能发射火球
             // 击退位移
             this.x += this.damage_x * this.damage_speed * this.timedelta / 1000;
             this.y += this.damage_y * this.damage_speed * this.timedelta / 1000;
@@ -149,8 +153,8 @@ class Player extends AcGameObject {
                 this.vx = this.vy = 0; // 单位速度置为0
                 if (!this.is_me) {
                     // 如果是AI到头,重新创建随机移动位置
-                    let tx = Math.random() * this.playground.width;
-                    let ty = Math.random() * this.playground.height;
+                    let tx = Math.random() * this.playground.width / this.playground.scale;
+                    let ty = Math.random() * this.playground.height / this.playground.scale;
                     this.move_to(tx, ty);
                 }
             } else { // 需要移动
@@ -160,10 +164,9 @@ class Player extends AcGameObject {
                 this.move_length -= moved;
             }
         }
-        this.render(); // 每一帧都画一个玩家
     }
 
-    on_destroy () { // 玩家死亡从玩家列表中删除
+    on_destroy() { // 玩家死亡从玩家列表中删除
         for (let i = 0; i < this.playground.players.length; i++) {
             if (this.playground.players[i] === this) {
                 this.playground.players.splice(i, 1);
@@ -171,18 +174,21 @@ class Player extends AcGameObject {
         }
     }
 
-    render () {
+    render() {
+        let scale = this.playground.scale;
         if (this.is_me) { // 是自己才渲染头像
             this.ctx.save();
             this.ctx.beginPath();
-            this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+            // 边框颜色
+            this.ctx.strokeStyle = "purple"; // 填充边框颜色
+            this.ctx.arc(this.x * scale, this.y * scale, this.radius * scale, 0, Math.PI * 2, false);
             this.ctx.stroke();
             this.ctx.clip();
-            this.ctx.drawImage(this.img, this.x - this.radius, this.y - this.radius, this.radius * 2, this.radius * 2);
+            this.ctx.drawImage(this.img, (this.x - this.radius) * scale, (this.y - this.radius) * scale, this.radius * 2 * scale, this.radius * 2 * scale);
             this.ctx.restore();
         } else {
             this.ctx.beginPath();
-            this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+            this.ctx.arc(this.x * scale, this.y * scale, this.radius * scale, 0, Math.PI * 2, false);
             this.ctx.fillStyle = this.color;
             this.ctx.fill();
         }

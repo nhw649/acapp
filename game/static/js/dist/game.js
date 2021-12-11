@@ -99,17 +99,25 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
     constructor(playground) {
         super(); // 相当于将自己注册到了AC_GAME_OBJECTS数组中
         this.playground = playground;
-        this.$canvas = $(`<canvas style="width:100%;height:100%;"></canvas>`); // 创建canvas
+        this.$canvas = $(`<canvas></canvas>`); // 创建canvas
         this.ctx = this.$canvas[0].getContext("2d"); // 创建context对象
         this.ctx.canvas.width = this.playground.width; // 设置canvas的宽度
         this.ctx.canvas.height = this.playground.height; // 设置canvas的高度
         this.playground.$playground.append(this.$canvas); // 将canvas添加到游戏界面上
     }
 
-    start() {}
+    start() {
+    }
 
     update() {
         this.render(); // 每一帧都画一个地图
+    }
+
+    resize() {
+        this.ctx.canvas.width = this.playground.width;
+        this.ctx.canvas.height = this.playground.height;
+        this.ctx.fillStyle = "rgba(131,175,155,1)"; // 防止调整窗口时出现闪烁
+        this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
     }
 
     render() {
@@ -130,15 +138,14 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
         this.speed = speed;
         this.move_length = move_length;
         this.friction = 0.9;
-        this.eps = 100; // 用来进行比较
+        this.eps = 0.01; // 用来进行比较
     }
 
     start() {
-
     }
 
     update() {
-        if (this.speed < this.eps) {
+        if (this.speed * 0.1 < this.eps) {
             this.destroy();
             return false;
         }
@@ -151,8 +158,9 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
     }
 
     render() {
+        let scale = this.playground.scale;
         this.ctx.beginPath();
-        this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+        this.ctx.arc(this.x * scale, this.y * scale, this.radius * scale, 0, Math.PI * 2, false);
         this.ctx.fillStyle = this.color;
         this.ctx.fill();
     }
@@ -174,31 +182,30 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
         this.speed = speed;
         this.is_me = is_me;
         this.move_length = 0; // 保存两点之间的距离
-        this.eps = 0.1; // 用来和移动距离进行比较
+        this.eps = 0.01; // 用来和移动距离进行比较
 
         this.spend_time = 0; // 倒计时开始
         this.cur_skill = null; // 存储技能
-
         if (this.is_me) { // 是自己才使用头像
             this.img = new Image();
             this.img.src = this.playground.root.settings.photo;
         }
     }
 
-    start () {
+    start() {
         if (this.is_me) { // 是自己才添加鼠标点击移动事件
             this.add_listening_events();
         } else { // AI
             setInterval(() => {
                 // 创建随机移动位置
-                let tx = Math.random() * this.playground.width;
-                let ty = Math.random() * this.playground.height;
+                let tx = Math.random() * this.playground.width / this.playground.scale;
+                let ty = Math.random() * this.playground.height / this.playground.scale;
                 this.move_to(tx, ty);
             }, 5000);
         }
     }
 
-    add_listening_events () {
+    add_listening_events() {
         this.playground.game_map.$canvas.on("contextmenu", function () {
             return false; // 防止右键出现菜单选项
         })
@@ -206,48 +213,47 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
             const rect = this.ctx.canvas.getBoundingClientRect(); // 返回元素的大小及其相对于视口的位置
 
             if (e.which === 3) { // 右键移动
-                this.move_to(e.clientX - rect.left, e.clientY - rect.top);
+                this.move_to((e.clientX - rect.left) / this.playground.scale, (e.clientY - rect.top) / this.playground.scale);
             } else if (e.which === 1) { // 左键发射技能
                 if (this.cur_skill === "fireball") { // 火球技能
-                    this.shoot_fireball(e.clientX - rect.left, e.clientY - rect.top);
+                    this.shoot_fireball((e.clientX - rect.left) / this.playground.scale, (e.clientY - rect.top) / this.playground.scale);
                 }
                 this.cur_skill = null; // 清空
             }
         })
         $(window).keydown((e) => {
-            if (e.keyCode === 81 && this.radius >= 10) {
+            if (e.keyCode === 81 && this.radius >= this.eps) {
                 this.cur_skill = "fireball";
                 return false;
             }
         })
     }
 
-
-    shoot_fireball (tx, ty) {
+    shoot_fireball(tx, ty) {
         // if (this.playground.players.indexOf(this) === -1) { // 玩家死亡不能发射火球
         //     return;
         // }
         let x = this.x;
         let y = this.y;
-        let radius = this.playground.height * 0.01;
+        let radius = 0.01;
         let angle = Math.atan2(ty - this.y, tx - this.x);
-        let speed = this.playground.height * 0.5;
+        let speed = 0.5;
         let color = "orange";
         let vx = Math.cos(angle);
         let vy = Math.sin(angle);
-        let move_length = this.playground.height * 1.3; // 火球移动距离
+        let move_length = 1.3; // 火球移动距离
         // 创建火球,伤害值比例是玩家半径比例的20%,相当于可打掉玩家20%血量
-        new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, this.playground.height * 0.01);
+        new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 0.01);
     }
 
-    move_to (tx, ty) {
+    move_to(tx, ty) {
         this.move_length = this.get_dist(this.x, this.y, tx, ty); // 两点之间的距离
         let angle = Math.atan2(ty - this.y, tx - this.x); // 角度方向
         this.vx = Math.cos(angle); // 单位x轴速度
         this.vy = Math.sin(angle); // 单位y轴速度
     }
 
-    is_attacked (angle, damage) { // 被攻击触发效果
+    is_attacked(angle, damage) { // 被攻击触发效果
         // 粒子效果
         for (let i = 0; i < Math.random() * 5 + 10; i++) {
             let x = this.x,
@@ -262,7 +268,7 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
             new Particle(this.playground, x, y, radius, color, vx, vy, speed, move_length);
         }
         this.radius -= damage; // 玩家血量(半径)减少
-        if (this.radius < 10) {
+        if (this.radius < this.eps) {
             this.destroy(); // 玩家死亡
             return false;
         }
@@ -273,13 +279,18 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
         this.speed *= 0.8; // 血量减少移速变慢
     }
 
-    get_dist (x1, y1, x2, y2) { // 获取两点距离
+    get_dist(x1, y1, x2, y2) { // 获取两点距离
         let dx = x2 - x1;
         let dy = y2 - y1;
         return Math.sqrt(dx * dx + dy * dy);
     }
 
-    update () {
+    update() {
+        this.update_move();
+        this.render(); // 每一帧都画一个玩家
+    }
+
+    update_move() { // 更新玩家移动
         this.spend_time += this.timedelta / 1000;
         if (!this.is_me && this.spend_time > 4 && Math.random() < 1 / 100) { // AI自动攻击
             let player = this.playground.players[Math.floor(Math.random() * this.playground.players.length)];
@@ -293,10 +304,11 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
             let ty = player.y + this.vy * this.speed * this.timedelta / 1000 * 0.3;
             this.shoot_fireball(tx, ty);
         }
-        if (this.damage_speed > 10) {
+        if (this.damage_speed > this.eps) {
             // 击退时不受控制
             this.vx = this.vy = 0;
             this.move_length = 0;
+            this.cur_skill = null;
             // 击退位移
             this.x += this.damage_x * this.damage_speed * this.timedelta / 1000;
             this.y += this.damage_y * this.damage_speed * this.timedelta / 1000;
@@ -307,8 +319,8 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
                 this.vx = this.vy = 0; // 单位速度置为0
                 if (!this.is_me) {
                     // 如果是AI到头,重新创建随机移动位置
-                    let tx = Math.random() * this.playground.width;
-                    let ty = Math.random() * this.playground.height;
+                    let tx = Math.random() * this.playground.width / this.playground.scale;
+                    let ty = Math.random() * this.playground.height / this.playground.scale;
                     this.move_to(tx, ty);
                 }
             } else { // 需要移动
@@ -318,10 +330,9 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
                 this.move_length -= moved;
             }
         }
-        this.render(); // 每一帧都画一个玩家
     }
 
-    on_destroy () { // 玩家死亡从玩家列表中删除
+    on_destroy() { // 玩家死亡从玩家列表中删除
         for (let i = 0; i < this.playground.players.length; i++) {
             if (this.playground.players[i] === this) {
                 this.playground.players.splice(i, 1);
@@ -329,18 +340,21 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
         }
     }
 
-    render () {
+    render() {
+        let scale = this.playground.scale;
         if (this.is_me) { // 是自己才渲染头像
             this.ctx.save();
             this.ctx.beginPath();
-            this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+            // 边框颜色
+            this.ctx.strokeStyle = "purple"; // 填充边框颜色
+            this.ctx.arc(this.x * scale, this.y * scale, this.radius * scale, 0, Math.PI * 2, false);
             this.ctx.stroke();
             this.ctx.clip();
-            this.ctx.drawImage(this.img, this.x - this.radius, this.y - this.radius, this.radius * 2, this.radius * 2);
+            this.ctx.drawImage(this.img, (this.x - this.radius) * scale, (this.y - this.radius) * scale, this.radius * 2 * scale, this.radius * 2 * scale);
             this.ctx.restore();
         } else {
             this.ctx.beginPath();
-            this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+            this.ctx.arc(this.x * scale, this.y * scale, this.radius * scale, 0, Math.PI * 2, false);
             this.ctx.fillStyle = this.color;
             this.ctx.fill();
         }
@@ -408,8 +422,9 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
     }
 
     render() {
+        let scale = this.playground.scale;
         this.ctx.beginPath();
-        this.ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+        this.ctx.arc(this.x * scale, this.y * scale, this.radius * scale, 0, Math.PI * 2, false);
         this.ctx.fillStyle = this.color;
         this.ctx.fill();
     }
@@ -420,6 +435,7 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
 <div class="ac-game-playground"></div>
 `);
         this.root.$ac_game.append(this.$playground);
+        this.hide(); // 隐藏游戏界面
         this.start();
     }
 
@@ -429,20 +445,37 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
     }
 
     start() {
-        this.hide(); // 隐藏游戏界面
+        $(window).resize(() => { // 界面缩放时,调整界面宽高
+            this.resize();
+        })
+    }
+
+    resize() { // 调整界面宽高(统一单位长度)
+        this.width = this.$playground.width();
+        this.height = this.$playground.height();
+        // 16:9比例分辨率最合适
+        let unit = Math.min(this.width / 16, this.height / 9); // 单位长度
+        this.width = unit * 16;
+        this.height = unit * 9;
+        this.scale = this.height; // 调整窗口大小的放缩基准
+        if (this.game_map) {
+            // 地图存在就调整一次界面
+            this.game_map.resize();
+        }
     }
 
     show() {
         this.$playground.show();
+        this.resize();
         this.width = this.$playground.width(); // 存储界面的宽度
         this.height = this.$playground.height(); // 存储界面的高度
         this.game_map = new GameMap(this); // 创建游戏地图
 
         this.players = []; // 保存游戏玩家
-        this.players.push(new Player(this, this.width / 2, this.height / 2, this.height * 0.05, "white", this.height * 0.2, true)); // 创建自己
+        this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, 0.05, "white", 0.2, true)); // 创建自己
         for (let i = 0; i < 10; i++) {
             // 创建AI
-            this.players.push(new Player(this, this.width / 2, this.height / 2, this.height * 0.05, this.get_random_color(), this.height * 0.2, false))
+            this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, 0.05, this.get_random_color(), 0.2, false))
         }
     }
 
@@ -554,7 +587,7 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
         this.add_listening_events_login();
         this.add_listening_events_register();
         this.$login_third_party.click(() => {
-            this.user_login_third()
+            this.user_login_third();
         })
     }
 
@@ -584,7 +617,6 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
             type: "GET",
             success: function (res) {
                 if (res.result === "success") {
-                    console.log(res.apply_code_url)
                     location.replace(res.apply_code_url)
                 }
             }
@@ -655,8 +687,12 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
     }
 
     start() {
-        this.getinfo();
-        this.add_listening_events();
+        if (this.platform === "web") {
+            this.getinfo_web();
+            this.add_listening_events();
+        } else {
+            this.getinfo_acapp();
+        }
     }
 
     register() { // 打开注册界面
@@ -669,7 +705,7 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
         this.$login.show();
     }
 
-    getinfo() {
+    getinfo_web() {
         let outer = this;
         // 从服务器获取用户信息
         $.ajax({
@@ -680,7 +716,6 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
             },
             success: function (res) {
                 if (res.result === "success") { // 已登录
-                    console.log(res);
                     outer.username = res.username;
                     outer.photo = res.photo;
                     outer.hide();
@@ -690,6 +725,32 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
                 }
             }
         })
+    }
+
+    getinfo_acapp() {
+        let outer = this;
+        $.ajax({
+            url: "https://app372.acapp.acwing.com.cn/settings/acwing/acapp/apply_code/",
+            type: "GET",
+            success: function (res) {
+                if (res.result === "success") {
+                    outer.acapp_login(res.appid, res.redirect_uri, res.scope, res.state);
+                }
+            }
+        })
+    }
+
+    acapp_login(appid, redirect_uri, scope, state) {
+        let outer = this;
+        this.root.AcWingOS.api.oauth2.authorize(appid, redirect_uri, scope, state, function (res) {
+            // redirect_uri返回后的回调函数
+            if (res.result === "success") {
+                outer.username = res.username;
+                outer.photo = res.photo;
+                outer.hide();
+                outer.root.menu.show();
+            }
+        });
     }
 
     hide() {
