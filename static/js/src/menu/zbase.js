@@ -22,28 +22,29 @@ class AcGameMenu {
         this.start();
     }
 
-    start () {
+    start() {
         this.add_listening_events();
     }
 
-    add_listening_events () {
+    add_listening_events() {
         this.$single.click(() => {
-            this.root.playground.show(); // 显示游戏场景
             this.hide();
+            this.root.playground.show("single mode"); // 显示单人模式游戏场景
         });
         this.$multi.click(() => {
-            console.log("multi")
+            this.hide();
+            this.root.playground.show("multi mode"); // 显示多人模式游戏场景
         });
         this.$settings.click(() => {
             this.root.settings.user_logout();
         })
     }
 
-    show () {
+    show() {
         this.$menu.show();
     }
 
-    hide () {
+    hide() {
         this.$menu.hide();
     }
 }

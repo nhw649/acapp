@@ -1,5 +1,5 @@
 class Player extends AcGameObject {
-    constructor(playground, x, y, radius, color, speed, is_me) {
+    constructor(playground, x, y, radius, color, speed, character, username, photo) {
         super();
         this.playground = playground
         this.ctx = this.playground.game_map.ctx; // 获取context对象
@@ -14,22 +14,24 @@ class Player extends AcGameObject {
         this.radius = radius;
         this.color = color;
         this.speed = speed;
-        this.is_me = is_me;
+        this.character = character;
+        this.username = username;
+        this.photo = photo;
         this.move_length = 0; // 保存两点之间的距离
         this.eps = 0.01; // 用来和移动距离进行比较
 
         this.spend_time = 0; // 倒计时开始
         this.cur_skill = null; // 存储技能
-        if (this.is_me) { // 是自己才使用头像
+        if (this.character !== "robot") { // 不是机器人才拥有头像
             this.img = new Image();
-            this.img.src = this.playground.root.settings.photo;
+            this.img.src = this.photo;
         }
     }
 
     start() {
-        if (this.is_me) { // 是自己才添加鼠标点击移动事件
+        if (this.character === "me") { // 是自己才添加鼠标点击移动事件
             this.add_listening_events();
-        } else { // AI
+        } else if (this.character === "robot") { // 机器人
             setInterval(() => {
                 // 创建随机移动位置
                 let tx = Math.random() * this.playground.width / this.playground.scale;
@@ -126,9 +128,9 @@ class Player extends AcGameObject {
 
     update_move() { // 更新玩家移动
         this.spend_time += this.timedelta / 1000;
-        if (!this.is_me && this.spend_time > 4 && Math.random() < 1 / 100) { // AI自动攻击
+        if (this.character === "robot" && this.spend_time > 4 && Math.random() < 1 / 100) { // 机器人自动攻击
             let player = this.playground.players[Math.floor(Math.random() * this.playground.players.length)];
-            while (player === this) { // AI不能攻击自己
+            while (player === this) { // 机器人不能攻击自己
                 player = this.playground.players[Math.floor(Math.random() * this.playground.players.length)];
                 if (this.playground.players.length === 1) { // 防止死循环
                     return false;
@@ -141,8 +143,8 @@ class Player extends AcGameObject {
         if (this.damage_speed > this.eps) {
             // 击退时不受控制
             this.vx = this.vy = 0;
-            this.move_length = 0;
-            this.cur_skill = null;
+            this.move_length = 0; // 无法移动
+            this.cur_skill = null; // 击退时不能发射火球
             // 击退位移
             this.x += this.damage_x * this.damage_speed * this.timedelta / 1000;
             this.y += this.damage_y * this.damage_speed * this.timedelta / 1000;
@@ -151,8 +153,8 @@ class Player extends AcGameObject {
             if (this.move_length < this.eps) { // 已经移动到指定位置,不需要移动了
                 this.move_length = 0; // 移动距离置为0
                 this.vx = this.vy = 0; // 单位速度置为0
-                if (!this.is_me) {
-                    // 如果是AI到头,重新创建随机移动位置
+                if (this.character === "robot") {
+                    // 如果是机器人到头,重新创建随机移动位置
                     let tx = Math.random() * this.playground.width / this.playground.scale;
                     let ty = Math.random() * this.playground.height / this.playground.scale;
                     this.move_to(tx, ty);
@@ -176,7 +178,7 @@ class Player extends AcGameObject {
 
     render() {
         let scale = this.playground.scale;
-        if (this.is_me) { // 是自己才渲染头像
+        if (this.character !== "robot") { // 不是机器人才渲染头像
             this.ctx.save();
             this.ctx.beginPath();
             // 边框颜色

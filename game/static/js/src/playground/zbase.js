@@ -15,7 +15,7 @@ class AcGamePlayground {
     }
 
     start() {
-        $(window).resize(() => { // 界面缩放时,调整界面宽高
+        $(window).resize(() => { // 监听界面缩放时,调整界面宽高
             this.resize();
         })
     }
@@ -34,18 +34,30 @@ class AcGamePlayground {
         }
     }
 
-    show() {
+    show(mode) {
         this.$playground.show();
-        this.resize();
         this.width = this.$playground.width(); // 存储界面的宽度
         this.height = this.$playground.height(); // 存储界面的高度
         this.game_map = new GameMap(this); // 创建游戏地图
+        this.resize();
 
         this.players = []; // 保存游戏玩家
-        this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, 0.05, "white", 0.2, true)); // 创建自己
-        for (let i = 0; i < 10; i++) {
-            // 创建AI
-            this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, 0.05, this.get_random_color(), 0.2, false))
+        // 创建自己
+        this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, 0.05, "white", 0.2, "me", this.root.settings.username, this.root.settings.photo));
+
+        if (mode === "single mode") {
+            for (let i = 0; i < 10; i++) {
+                // 创建机器人
+                this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, 0.05, this.get_random_color(), 0.2, "robot"))
+            }
+        } else if (mode === "multi mode") {
+            this.mps = new MultiPlayerSocket(this); // 建立ws连接
+            this.mps.uuid = this.players[0].uuid; // 自己的唯一编号
+
+            this.mps.ws.onopen = (() => { // 成功建立连接执行该回调
+                // 向服务器发送创建玩家消息
+                this.mps.send_create_player(this.root.settings.username, this.root.settings.photo);
+            })
         }
     }
 

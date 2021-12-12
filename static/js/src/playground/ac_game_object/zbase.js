@@ -5,6 +5,15 @@ class AcGameObject {
         AC_GAME_OBJECTS.push(this);
         this.has_called_start = false; // 是否执行过start()
         this.timedelta = 0; // 当前帧距离上一帧的时间间隔
+        this.uuid = this.create_uuid(); // 给每个对象创建唯一编号
+    }
+
+    create_uuid() { // 创建一个8位随机的编号
+        let res = '';
+        for (let i = 0; i < 8; i++) {
+            res += Math.floor(Math.random() * 10);
+        }
+        return res;
     }
 
     start() { // 只会在第一帧执行
