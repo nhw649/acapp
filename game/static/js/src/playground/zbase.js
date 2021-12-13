@@ -35,6 +35,7 @@ class AcGamePlayground {
     }
 
     show(mode) {
+        this.mode = mode; // 存储游戏模式
         this.$playground.show();
         this.width = this.$playground.width(); // 存储界面的宽度
         this.height = this.$playground.height(); // 存储界面的高度

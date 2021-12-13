@@ -164,16 +164,19 @@ class Settings {
     }
 
     user_logout() {
-        if (this.platform === "ACAPP") return false;
-        $.ajax({
-            url: "https://app372.acapp.acwing.com.cn/settings/logout/",
-            type: "GET",
-            success: function (res) {
-                if (res.result === "success") { // 已登录
-                    location.reload();
+        if (this.platform === "ACAPP") { // 关闭窗口
+            this.root.AcWingOS.api.window.close();
+        } else {
+            $.ajax({
+                url: "https://app372.acapp.acwing.com.cn/settings/logout/",
+                type: "GET",
+                success: function (res) {
+                    if (res.result === "success") { // 已登录
+                        location.reload();
+                    }
                 }
-            }
-        })
+            })
+        }
     }
 
     user_register() {

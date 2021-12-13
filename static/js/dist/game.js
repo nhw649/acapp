@@ -205,6 +205,7 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
     }
 
     start() {
+        this.playground.mps.send_move_to(tx, ty)
         if (this.character === "me") { // 是自己才添加鼠标点击移动事件
             this.add_listening_events();
         } else if (this.character === "robot") { // 机器人
@@ -225,7 +226,12 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
             const rect = this.ctx.canvas.getBoundingClientRect(); // 返回元素的大小及其相对于视口的位置
 
             if (e.which === 3) { // 右键移动
-                this.move_to((e.clientX - rect.left) / this.playground.scale, (e.clientY - rect.top) / this.playground.scale);
+                let tx = (e.clientX - rect.left) / this.playground.scale;
+                let ty = (e.clientY - rect.top) / this.playground.scale;
+                this.move_to(tx, ty);
+                if (this.playground.mode === "multi mode") {
+                    this.playground.mps.send_move_to(tx, ty)
+                }
             } else if (e.which === 1) { // 左键发射技能
                 if (this.cur_skill === "fireball") { // 火球技能
                     this.shoot_fireball((e.clientX - rect.left) / this.playground.scale, (e.clientY - rect.top) / this.playground.scale);
@@ -451,17 +457,30 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
         this.receive();
     }
 
+    get_player(uuid) { // 获取玩家
+        let players = this.playground.players;
+        for (let i = 0; i < players.length; i++) {
+            let player = players[i];
+            if (player.uuid === uuid) {
+                return player;
+            }
+        }
+        return null;
+    }
+
     receive() {
         this.ws.onmessage = ((e) => { // 接收服务器发送的消息
             let data = JSON.parse(e.data);
-            console.log(data)
             let event = data.event;
             let uuid = data.uuid;
             if (uuid === this.uuid) { // 是自己就过滤掉
                 return false;
             }
+            // 路由
             if (event === "create_player") {
                 this.receive_create_player(uuid, data.username, data.photo);
+            } else if (event === "move_to") {
+                this.receive_move_to(uuid, data.tx, data.ty);
             }
         })
     }
@@ -481,6 +500,23 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
         let player = new Player(this.playground, this.playground.width / 2 / this.playground.scale, 0.5, 0.05, "white", 0.2, "enemy", username, photo);
         player.uuid = uuid; // 统一不同窗口同一玩家的uid
         this.playground.players.push(player);
+    }
+
+    send_move_to(tx, ty) { // 向服务器发送玩家移动消息
+        let outer = this;
+        this.ws.send(JSON.stringify({
+            'event': 'move_to',
+            'uuid': outer.uuid,
+            'tx': tx,
+            'ty': ty
+        }))
+    }
+
+    receive_move_to(uuid, tx, ty) { // 处理玩家移动消息
+        let player = this.get_player(uuid);
+        if (player) { // 玩家存在
+            player.move_to(tx, ty);
+        }
     }
 }class AcGamePlayground {
     constructor(root) {
@@ -519,6 +555,7 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
     }
 
     show(mode) {
+        this.mode = mode; // 存储游戏模式
         this.$playground.show();
         this.width = this.$playground.width(); // 存储界面的宽度
         this.height = this.$playground.height(); // 存储界面的高度
@@ -714,16 +751,19 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
     }
 
     user_logout() {
-        if (this.platform === "ACAPP") return false;
-        $.ajax({
-            url: "https://app372.acapp.acwing.com.cn/settings/logout/",
-            type: "GET",
-            success: function (res) {
-                if (res.result === "success") { // 已登录
-                    location.reload();
+        if (this.platform === "ACAPP") { // 关闭窗口
+            this.root.AcWingOS.api.window.close();
+        } else {
+            $.ajax({
+                url: "https://app372.acapp.acwing.com.cn/settings/logout/",
+                type: "GET",
+                success: function (res) {
+                    if (res.result === "success") { // 已登录
+                        location.reload();
+                    }
                 }
-            }
-        })
+            })
+        }
     }
 
     user_register() {

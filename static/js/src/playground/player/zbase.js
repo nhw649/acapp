@@ -29,6 +29,7 @@ class Player extends AcGameObject {
     }
 
     start() {
+        this.playground.mps.send_move_to(tx, ty)
         if (this.character === "me") { // 是自己才添加鼠标点击移动事件
             this.add_listening_events();
         } else if (this.character === "robot") { // 机器人
@@ -49,7 +50,12 @@ class Player extends AcGameObject {
             const rect = this.ctx.canvas.getBoundingClientRect(); // 返回元素的大小及其相对于视口的位置
 
             if (e.which === 3) { // 右键移动
-                this.move_to((e.clientX - rect.left) / this.playground.scale, (e.clientY - rect.top) / this.playground.scale);
+                let tx = (e.clientX - rect.left) / this.playground.scale;
+                let ty = (e.clientY - rect.top) / this.playground.scale;
+                this.move_to(tx, ty);
+                if (this.playground.mode === "multi mode") {
+                    this.playground.mps.send_move_to(tx, ty)
+                }
             } else if (e.which === 1) { // 左键发射技能
                 if (this.cur_skill === "fireball") { // 火球技能
                     this.shoot_fireball((e.clientX - rect.left) / this.playground.scale, (e.clientY - rect.top) / this.playground.scale);
