@@ -6,7 +6,14 @@ from django.core.cache import cache
 
 class MultiPlayer(AsyncWebsocketConsumer):
     async def connect(self):
+        print('accept')
         await self.accept()  # 接收连接
+
+    async def disconnect(self, close_code):  # 断开连接(但断开连接不一定执行,如电脑断电)
+        print('disconnect')
+        await self.channel_layer.group_discard(self.room_name, self.channel_name)  # 删除组
+
+    async def create_player(self, data):
         self.room_name = None  # 初始化房间名
 
         # 匹配房间
@@ -34,14 +41,8 @@ class MultiPlayer(AsyncWebsocketConsumer):
                 'photo': player['photo']
             }))
 
-        print('accept')
         await self.channel_layer.group_add(self.room_name, self.channel_name)  # 加入组
 
-    async def disconnect(self, close_code):  # 断开连接(但断开连接不一定执行,如电脑断电)
-        print('disconnect')
-        await self.channel_layer.group_discard(self.room_name, self.channel_name)  # 删除组
-
-    async def create_player(self, data):
         # 存储创建的玩家消息
         players = cache.get(self.room_name)  # 获取玩家信息列表
         players.append({
@@ -75,6 +76,50 @@ class MultiPlayer(AsyncWebsocketConsumer):
             }
         )
 
+    async def shoot_fireball(self, data):
+        # 组内中发送消息
+        await self.channel_layer.group_send(
+            self.room_name,
+            {
+                'type': 'group_send_event',  # 接收组内消息的函数名
+                'event': 'shoot_fireball',
+                'uuid': data['uuid'],
+                'tx': data['tx'],
+                'ty': data['ty'],
+                'fireball_uuid': data['fireball_uuid']
+            }
+        )
+
+    async def attack(self, data):
+        # 组内中发送消息
+        await self.channel_layer.group_send(
+            self.room_name,
+            {
+                'type': 'group_send_event',  # 接收组内消息的函数名
+                'event': 'attack',
+                'uuid': data['uuid'],
+                'attackee_uuid': data['attackee_uuid'],
+                'x': data['x'],
+                'y': data['y'],
+                'angle': data['angle'],
+                'damage': data['damage'],
+                'fireball_uuid': data['fireball_uuid']
+            }
+        )
+
+    async def blink(self, data):
+        # 组内中发送消息
+        await self.channel_layer.group_send(
+            self.room_name,
+            {
+                'type': 'group_send_event',  # 接收组内消息的函数名
+                'event': 'blink',
+                'uuid': data['uuid'],
+                'tx': data['tx'],
+                'ty': data['ty'],
+            }
+        )
+
     # 接收组内中的消息
     async def group_send_event(self, data):
         await self.send(text_data=json.dumps(data))  # 向前端发送消息
@@ -86,3 +131,9 @@ class MultiPlayer(AsyncWebsocketConsumer):
             await self.create_player(data)
         elif event == 'move_to':
             await self.move_to(data)
+        elif event == 'shoot_fireball':
+            await self.shoot_fireball(data)
+        elif event == 'attack':
+            await self.attack(data)
+        elif event == 'blink':
+            await self.blink(data)

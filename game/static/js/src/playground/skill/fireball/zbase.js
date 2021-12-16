@@ -24,20 +24,31 @@ class FireBall extends AcGameObject {
             this.destroy();
             return false;
         }
+        this.update_move();
+        if (this.player.character !== "enemy") { // 其他窗口(敌人)不做碰撞判断
+            this.update_attack(); // 碰撞判断
+        }
+
+        this.render();
+    }
+
+    update_move() {
         let moved = Math.min(this.move_length, this.speed * this.timedelta / 1000);
         this.x += this.vx * moved; // 确定方向＋移动距离
         this.y += this.vy * moved;
         this.move_length -= moved; // 火球剩余距离
+    }
 
+    update_attack() {
         // 判断火球是否撞击
         for (let i = 0; i < this.playground.players.length; i++) {
             let player = this.playground.players[i];
             if (player !== this.player && this.is_collision(player)) {
                 // 火球攻击到AI了
                 this.attacked(player);
+                break; // 只会攻击一个玩家
             }
         }
-        this.render();
     }
 
     get_dist(x1, y1, x2, y2) {
@@ -57,6 +68,12 @@ class FireBall extends AcGameObject {
     attacked(player) {
         let angle = Math.atan2(player.y - this.y, player.x - this.x); // 确定被攻击后退的方向
         player.is_attacked(angle, this.damage); // 被攻击了
+
+        if (this.playground.mode === "multi mode") {
+            // 向服务器发送攻击消息
+            this.playground.mps.send_attack(player.uuid, player.x, player.y, angle, this.damage, this.uuid);
+        }
+
         this.destroy(); // 火球消失
     }
 
@@ -66,5 +83,15 @@ class FireBall extends AcGameObject {
         this.ctx.arc(this.x * scale, this.y * scale, this.radius * scale, 0, Math.PI * 2, false);
         this.ctx.fillStyle = this.color;
         this.ctx.fill();
+    }
+
+    on_destroy() { // 删除火球前需要从火球列表中删除
+        let fireballs = this.player.fireballs;
+        for (let i = 0; i < fireballs.length; i++) {
+            if (fireballs[i] === this) {
+                fireballs.splice(i, 1);
+                break;
+            }
+        }
     }
 }

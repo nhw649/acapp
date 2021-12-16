@@ -36,10 +36,13 @@ class AcGamePlayground {
 
     show(mode) {
         this.mode = mode; // 存储游戏模式
-        this.$playground.show();
+        this.player_count = 0; // 玩家数量
+        this.$playground.show(); // 显示游戏界面
         this.width = this.$playground.width(); // 存储界面的宽度
         this.height = this.$playground.height(); // 存储界面的高度
         this.game_map = new GameMap(this); // 创建游戏地图
+        this.state = "waiting"; // 游戏状态 waiting - fighting - over
+        this.notice_board = new NoticeBoard(this); // 创建提示板
         this.resize();
 
         this.players = []; // 保存游戏玩家
