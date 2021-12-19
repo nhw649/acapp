@@ -120,6 +120,19 @@ class MultiPlayer(AsyncWebsocketConsumer):
             }
         )
 
+    async def chat_message(self, data):
+        # 组内中发送消息
+        await self.channel_layer.group_send(
+            self.room_name,
+            {
+                'type': 'group_send_event',  # 接收组内消息的函数名
+                'event': 'message',
+                'uuid': data['uuid'],
+                'username': data['username'],
+                'text': data['text'],
+            }
+        )
+
     # 接收组内中的消息
     async def group_send_event(self, data):
         await self.send(text_data=json.dumps(data))  # 向前端发送消息
@@ -137,3 +150,5 @@ class MultiPlayer(AsyncWebsocketConsumer):
             await self.attack(data)
         elif event == 'blink':
             await self.blink(data)
+        elif event == 'message':
+            await self.chat_message(data)

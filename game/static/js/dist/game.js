@@ -105,11 +105,79 @@ let AC_GAME_ANIMATION = (timestamp) => {
     requestAnimationFrame(AC_GAME_ANIMATION); // 递归调用
 }
 // 按帧对网页进行重绘
-requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
+requestAnimationFrame(AC_GAME_ANIMATION);class ChatField {
+    constructor(playground) {
+        this.playground = playground;
+        this.$history = $("<div class='chat-field-history'>历史记录</div>")
+        this.$input = $("<input type='text' class='chat-field-input'>")
+        this.$history.hide();
+        this.$input.hide();
+        this.playground.$playground.append(this.$history);
+        this.playground.$playground.append(this.$input);
+        this.timer_id = null;
+        this.start();
+    }
+
+    start() {
+        this.add_listening_events();
+    }
+
+    add_listening_events() {
+        this.$input.keydown((e) => {
+            if (e.which === 27) { // esc事件
+                this.hide_input();
+                return false;
+            } else if (e.which === 13) { // 回车事件
+                let username = this.playground.root.settings.username;
+                let text = this.$input.val();
+                if (text) { // 内容不为空
+                    this.add_message(username, text);
+                    this.$input.val(""); // 输入框置空
+                    this.playground.mps.send_chat_message(username, text); // 向服务器发送聊天信息
+                }
+                return false;
+            }
+        })
+        this.$input.blur(() => { // 输入框失去焦点事件
+            this.$input.hide(); // 隐藏输入框,不聚焦canvas
+        })
+    }
+
+    render_message(message) { // 渲染聊天历史记录信息
+        return $(`<div>${message}</div>`);
+    }
+
+    add_message(username, text) { // 添加聊天历史记录信息
+        this.show_history();
+        let message = `[${username}]${text}`;
+        this.$history.append(this.render_message(message));
+        this.$history.scrollTop(this.$history[0].scrollHeight);
+    }
+
+    show_history() {
+        this.$history.fadeIn();
+        if (this.timer_id) clearTimeout(this.timer_id);
+        this.timer_id = setTimeout(() => { // 3s后关闭历史记录
+            this.$history.fadeOut();
+            this.timer_id = null;
+        }, 3000)
+    }
+
+    show_input() {
+        this.$input.show();
+        this.$input.focus(); // 聚集到输入框
+        this.show_history(); // 打开历史记录
+    }
+
+    hide_input() {
+        this.$input.hide();
+        this.playground.game_map.$canvas.focus(); // 重新聚焦到canvas上
+    }
+}class GameMap extends AcGameObject {
     constructor(playground) {
         super(); // 相当于将自己注册到了AC_GAME_OBJECTS数组中
         this.playground = playground;
-        this.$canvas = $(`<canvas></canvas>`); // 创建canvas
+        this.$canvas = $(`<canvas tabindex="0"></canvas>`); // 创建canvas,tabindex="0"表示元素是可聚焦的
         this.ctx = this.$canvas[0].getContext("2d"); // 创建context对象
         this.playground.$playground.append(this.$canvas); // 将canvas添加到游戏界面上
         this.ctx.canvas.width = this.playground.width; // 设置canvas的宽度
@@ -117,6 +185,14 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
     }
 
     start() {
+        this.$canvas.focus(); // 聚焦canvas,才能获取canvas键盘事件
+        this.add_listening_events();
+    }
+
+    add_listening_events() {
+        this.$canvas.click(() => { // canvas点击事件
+            this.$canvas.focus(); // 聚焦canvas,才能获取canvas键盘事件
+        })
     }
 
     update() {
@@ -203,7 +279,7 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
 }class Player extends AcGameObject {
     constructor(playground, x, y, radius, color, speed, character, username, photo) {
         super();
-        this.playground = playground
+        this.playground = playground;
         this.ctx = this.playground.game_map.ctx; // 获取context对象
         this.x = x;
         this.y = y;
@@ -301,7 +377,19 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
                 this.cur_skill = null; // 清空技能
             }
         })
-        $(window).keydown((e) => {
+        this.playground.game_map.$canvas.keydown((e) => { // 绑定到canvas上,不会触发其他窗口的键盘事件
+            if (e.which === 13) // 监听回车事件
+            {
+                if (this.playground.mode === "multi mode") { // 打开聊天框
+                    this.playground.chat_field.show_input();
+                    return false;
+                }
+            } else if (e.which === 27) {
+                if (this.playground.mode === "multi mode") { // 关闭聊天框
+                    this.playground.chat_field.hide_input();
+                    return false;
+                }
+            }
             if (this.playground.state !== "fighting")
                 return true; // 匹配中不能发射火球
             if (e.which === 81 && this.radius >= this.eps) {
@@ -671,6 +759,8 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
                 this.receive_attack(uuid, data.attackee_uuid, data.x, data.y, data.angle, data.damage, data.fireball_uuid);
             } else if (event === "blink") {
                 this.receive_blink(uuid, data.tx, data.ty);
+            } else if (event === "message") {
+                this.receive_chat_message(uuid, data.username, data.text);
             }
         })
     }
@@ -767,6 +857,20 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
             player.blink(tx, ty);
         }
     }
+
+    send_chat_message(username, text) {
+        let outer = this;
+        this.ws.send(JSON.stringify({
+            'event': 'message',
+            'uuid': outer.uuid,
+            'username': username,
+            'text': text
+        }))
+    }
+
+    receive_chat_message(uuid, username, text) {
+        this.playground.chat_field.add_message(username, text); // 添加到聊天历史记录上
+    }
 }class AcGamePlayground {
     constructor(root) {
         this.root = root;
@@ -824,6 +928,7 @@ requestAnimationFrame(AC_GAME_ANIMATION);class GameMap extends AcGameObject {
                 this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, 0.05, this.get_random_color(), 0.2, "robot"))
             }
         } else if (mode === "multi mode") {
+            this.chat_field = new ChatField(this); // 创建聊天框
             this.mps = new MultiPlayerSocket(this); // 建立ws连接
             this.mps.uuid = this.players[0].uuid; // 自己的唯一编号
 

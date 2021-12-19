@@ -39,6 +39,8 @@ class MultiPlayerSocket {
                 this.receive_attack(uuid, data.attackee_uuid, data.x, data.y, data.angle, data.damage, data.fireball_uuid);
             } else if (event === "blink") {
                 this.receive_blink(uuid, data.tx, data.ty);
+            } else if (event === "message") {
+                this.receive_chat_message(uuid, data.username, data.text);
             }
         })
     }
@@ -134,5 +136,19 @@ class MultiPlayerSocket {
         if (player) {
             player.blink(tx, ty);
         }
+    }
+
+    send_chat_message(username, text) {
+        let outer = this;
+        this.ws.send(JSON.stringify({
+            'event': 'message',
+            'uuid': outer.uuid,
+            'username': username,
+            'text': text
+        }))
+    }
+
+    receive_chat_message(uuid, username, text) {
+        this.playground.chat_field.add_message(username, text); // 添加到聊天历史记录上
     }
 }

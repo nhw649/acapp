@@ -1,7 +1,7 @@
 class Player extends AcGameObject {
     constructor(playground, x, y, radius, color, speed, character, username, photo) {
         super();
-        this.playground = playground
+        this.playground = playground;
         this.ctx = this.playground.game_map.ctx; // 获取context对象
         this.x = x;
         this.y = y;
@@ -99,7 +99,19 @@ class Player extends AcGameObject {
                 this.cur_skill = null; // 清空技能
             }
         })
-        $(window).keydown((e) => {
+        this.playground.game_map.$canvas.keydown((e) => { // 绑定到canvas上,不会触发其他窗口的键盘事件
+            if (e.which === 13) // 监听回车事件
+            {
+                if (this.playground.mode === "multi mode") { // 打开聊天框
+                    this.playground.chat_field.show_input();
+                    return false;
+                }
+            } else if (e.which === 27) {
+                if (this.playground.mode === "multi mode") { // 关闭聊天框
+                    this.playground.chat_field.hide_input();
+                    return false;
+                }
+            }
             if (this.playground.state !== "fighting")
                 return true; // 匹配中不能发射火球
             if (e.which === 81 && this.radius >= this.eps) {
