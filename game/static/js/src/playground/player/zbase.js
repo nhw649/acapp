@@ -53,8 +53,10 @@ class Player extends AcGameObject {
         } else if (this.character === "robot") { // 机器人
             setInterval(() => {
                 // 创建随机移动位置
-                let tx = Math.random() * this.playground.width / this.playground.scale;
-                let ty = Math.random() * this.playground.height / this.playground.scale;
+                // let tx = Math.random() * this.playground.width / this.playground.scale;
+                // let ty = Math.random() * this.playground.height / this.playground.scale;
+                let tx = Math.random() * this.playground.virtual_map_width;
+                let ty = Math.random() * this.playground.virtual_map_height;
                 this.move_to(tx, ty);
             }, 5000);
         }
@@ -67,11 +69,21 @@ class Player extends AcGameObject {
         this.playground.game_map.$canvas.mousedown((e) => {
             if (this.playground.state !== "fighting")
                 return false; // 匹配中不能移动
+
             const rect = this.ctx.canvas.getBoundingClientRect(); // 返回元素的大小及其相对于视口的位置
+            // 鼠标按下位置相对于浏览器的位置
+            let tx = (e.clientX - rect.left) / this.playground.scale + this.playground.cx;
+            let ty = (e.clientY - rect.top) / this.playground.scale + this.playground.cy;
+
             if (e.which === 3) { // 右键移动
-                // 鼠标按下位置相对于浏览器的位置
-                let tx = (e.clientX - rect.left) / this.playground.scale;
-                let ty = (e.clientY - rect.top) / this.playground.scale;
+                if (tx < 0 || tx > this.playground.virtual_map_width || ty < 0 || ty > this.playground.virtual_map_height)
+                    return; // 不能向地图外移动
+                for (let i = 0; i < 20; i++) { // 右键点击粒子效果
+                    new ClickParticle(this.playground, tx, ty, "rgb(217, 143, 214)");
+                }
+
+                // let tx = (e.clientX - rect.left) / this.playground.scale;
+                // let ty = (e.clientY - rect.top) / this.playground.scale;
                 this.move_to(tx, ty);
                 if (this.playground.mode === "multi mode") {
                     this.playground.mps.send_move_to(tx, ty) // 向服务器发送玩家移动消息
@@ -86,8 +98,8 @@ class Player extends AcGameObject {
                 }
                 this.cur_skill = null; // 清空技能
             } else if (e.which === 1) { // 左键发射技能
-                let tx = (e.clientX - rect.left) / this.playground.scale;
-                let ty = (e.clientY - rect.top) / this.playground.scale;
+                // let tx = (e.clientX - rect.left) / this.playground.scale;
+                // let ty = (e.clientY - rect.top) / this.playground.scale;
                 if (this.cur_skill === "fireball") { // 火球技能
                     if (this.fireball_coldtime > 0) // 判断火球cd
                         return false;
@@ -123,6 +135,12 @@ class Player extends AcGameObject {
                 if (this.blink_coldtime > 0)
                     return true; // 闪现技能冷却中
                 this.cur_skill = "blink";
+                return false;
+            }
+
+            if (e.which === 49) { // 按空格聚焦玩家
+                this.playground.focus_player = this;
+                this.playground.re_calculate_cx_cy(this.x, this.y);
                 return false;
             }
         })
@@ -161,7 +179,7 @@ class Player extends AcGameObject {
 
     blink(tx, ty) { // 闪现技能
         let d = this.get_dist(this.x, this.y, tx, ty); // 获取需要的闪现距离
-        d = Math.min(d, 0.4); // 闪现最大距离为0.8
+        d = Math.min(d, 0.4); // 闪现最大距离为0.4
         let angle = Math.atan2(ty - this.y, tx - this.x); // 闪现角度
         this.x += d * Math.cos(angle);
         this.y += d * Math.sin(angle);
@@ -218,10 +236,13 @@ class Player extends AcGameObject {
 
     update() {
         this.spend_time += this.timedelta / 1000;
+        this.update_move();
+        if (this.character === "me" && this.playground.focus_player === this)  // 如果是玩家，并且正在被聚焦，修改background的 (cx, cy)
+            this.playground.re_calculate_cx_cy(this.x, this.y);
+
         if (this.character === "me" && this.playground.state === "fighting") {
             this.update_coldtime();
         }
-        this.update_move();
         this.render(); // 每一帧都画一个玩家
     }
 
@@ -323,19 +344,27 @@ class Player extends AcGameObject {
     render() {
         // 渲染头像
         let scale = this.playground.scale;
+        let ctx_x = this.x - this.playground.cx, ctx_y = this.y - this.playground.cy; // 把虚拟地图中的坐标换算成canvas中的坐标
+        if (ctx_x < -0.2 * this.playground.width / scale ||
+            ctx_x > 1.2 * this.playground.width / scale ||
+            ctx_y < -0.2 * this.playground.height / scale ||
+            ctx_y > 1.2 * this.playground.height / scale) {
+            if (this.character != "me") { // 一个隐藏的bug，如果是玩家自己并且return，会导致技能图标渲染不出来
+                return;
+            }
+        }
         if (this.character !== "robot") { // 不是机器人才渲染头像
             this.ctx.save();
+            this.ctx.strokeStyle = this.color; // 填充边框颜色
             this.ctx.beginPath();
-            // 边框颜色
-            this.ctx.strokeStyle = "purple"; // 填充边框颜色
-            this.ctx.arc(this.x * scale, this.y * scale, this.radius * scale, 0, Math.PI * 2, false);
+            this.ctx.arc(ctx_x * scale, ctx_y * scale, this.radius * scale, 0, Math.PI * 2, false);
             this.ctx.stroke();
             this.ctx.clip();
-            this.ctx.drawImage(this.img, (this.x - this.radius) * scale, (this.y - this.radius) * scale, this.radius * 2 * scale, this.radius * 2 * scale);
+            this.ctx.drawImage(this.img, (ctx_x - this.radius) * scale, (ctx_y - this.radius) * scale, this.radius * 2 * scale, this.radius * 2 * scale);
             this.ctx.restore();
         } else {
             this.ctx.beginPath();
-            this.ctx.arc(this.x * scale, this.y * scale, this.radius * scale, 0, Math.PI * 2, false);
+            this.ctx.arc(ctx_x * scale, ctx_y * scale, this.radius * scale, 0, Math.PI * 2, false);
             this.ctx.fillStyle = this.color;
             this.ctx.fill();
         }

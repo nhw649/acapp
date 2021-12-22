@@ -24,12 +24,16 @@ class AcGameObject {
 
     }
 
+    late_update() { // 在每一帧的最后执行一次
+
+    }
+
     on_destroy() { // 删除前执行
 
     }
 
     destroy() { // 删除该物体
-        this.on_destroy();
+        this.on_destroy(); // 删除前执行的函数
 
         for (let i = 0; i < AC_GAME_OBJECTS.length; i++) {
             if (AC_GAME_OBJECTS[i] === this) {
@@ -48,10 +52,16 @@ let AC_GAME_ANIMATION = (timestamp) => {
             obj.start();
             obj.has_called_start = true;
         } else {
-            obj.timedelta = timestamp - last_timestamp; // 时间间隔
             obj.update();
+            obj.timedelta = timestamp - last_timestamp; // 时间间隔
         }
     }
+
+    for (let i = 0; i < AC_GAME_OBJECTS.length; i++) {
+        let obj = AC_GAME_OBJECTS[i];
+        obj.late_update();
+    }
+
     last_timestamp = timestamp;
     requestAnimationFrame(AC_GAME_ANIMATION); // 递归调用
 }
