@@ -79,7 +79,7 @@ class Player extends AcGameObject {
                 if (tx < 0 || tx > this.playground.virtual_map_width || ty < 0 || ty > this.playground.virtual_map_height)
                     return; // 不能向地图外移动
                 for (let i = 0; i < 20; i++) { // 右键点击粒子效果
-                    new ClickParticle(this.playground, tx, ty, "rgb(217, 143, 214)");
+                    new ClickParticle(this.playground, tx, ty, "rgb(74,149,58)");
                 }
 
                 // let tx = (e.clientX - rect.left) / this.playground.scale;
@@ -112,20 +112,22 @@ class Player extends AcGameObject {
             }
         })
         this.playground.game_map.$canvas.keydown((e) => { // 绑定到canvas上,不会触发其他窗口的键盘事件
+            // 聊天框按键
             if (e.which === 13) // 监听回车事件
             {
-                if (this.playground.mode === "multi mode") { // 打开聊天框
+                if (this.playground.mode === "multi mode" && this.playground.state === "fighting") { // 打开聊天框
                     this.playground.chat_field.show_input();
                     return false;
                 }
             } else if (e.which === 27) {
-                if (this.playground.mode === "multi mode") { // 关闭聊天框
+                if (this.playground.mode === "multi mode" && this.playground.state === "fighting") { // 关闭聊天框
                     this.playground.chat_field.hide_input();
                     return false;
                 }
             }
             if (this.playground.state !== "fighting")
                 return true; // 匹配中不能发射火球
+            // 技能按键
             if (e.which === 81 && this.radius >= this.eps) {
                 if (this.fireball_coldtime > 0)
                     return true; // 火球技能冷却中
@@ -137,8 +139,8 @@ class Player extends AcGameObject {
                 this.cur_skill = "blink";
                 return false;
             }
-
-            if (e.which === 49) { // 按空格聚焦玩家
+            // 按空格聚焦玩家
+            if (e.which === 32) {
                 this.playground.focus_player = this;
                 this.playground.re_calculate_cx_cy(this.x, this.y);
                 return false;
@@ -207,13 +209,13 @@ class Player extends AcGameObject {
         for (let i = 0; i < Math.random() * 5 + 10; i++) {
             let x = this.x,
                 y = this.y;
-            let radius = this.radius * Math.random() * 0.7;
+            let radius = this.radius * Math.random() * 0.5;
             let color = this.color;
             let angle = Math.PI * 2 * Math.random();
             let vx = Math.cos(angle),
                 vy = Math.sin(angle);
             let speed = this.speed * 6;
-            let move_length = this.radius * Math.random() * 10;
+            let move_length = this.radius * Math.random() * 5;
             new Particle(this.playground, x, y, radius, color, vx, vy, speed, move_length);
         }
         this.radius -= damage; // 玩家血量(半径)减少
@@ -236,6 +238,7 @@ class Player extends AcGameObject {
 
     update() {
         this.spend_time += this.timedelta / 1000;
+        this.update_win(); // 触发判断胜利事件
         this.update_move();
         if (this.character === "me" && this.playground.focus_player === this)  // 如果是玩家，并且正在被聚焦，修改background的 (cx, cy)
             this.playground.re_calculate_cx_cy(this.x, this.y);
@@ -244,6 +247,13 @@ class Player extends AcGameObject {
             this.update_coldtime();
         }
         this.render(); // 每一帧都画一个玩家
+    }
+
+    update_win() { // 判断胜利事件
+        if (this.playground.state === "fighting" && this.character === "me" && this.playground.players.length === 1) {
+            this.playground.state === "over";
+            this.playground.score_board.win();
+        }
     }
 
     update_coldtime() { // 更新技能冷却时间
@@ -275,6 +285,7 @@ class Player extends AcGameObject {
             // 击退位移
             this.x += this.damage_x * this.damage_speed * this.timedelta / 1000;
             this.y += this.damage_y * this.damage_speed * this.timedelta / 1000;
+
             this.damage_speed *= this.friction; // 击退速度减少
         } else {
             if (this.move_length < this.eps) { // 已经移动到指定位置,不需要移动了
@@ -295,10 +306,12 @@ class Player extends AcGameObject {
         }
     }
 
-    on_destroy() { // 玩家死亡从玩家列表中删除
-        if (this.character === "me")
+    on_destroy() {
+        if (this.character === "me" && this.playground.state === "fighting") { // 判断失败
             this.playground.state = "over";
-        for (let i = 0; i < this.playground.players.length; i++) {
+            this.playground.score_board.lose();
+        }
+        for (let i = 0; i < this.playground.players.length; i++) { // 玩家死亡从玩家列表中删除
             if (this.playground.players[i] === this) {
                 this.playground.players.splice(i, 1);
                 break;
@@ -329,12 +342,12 @@ class Player extends AcGameObject {
 
     render_skill_coldtime() { // 渲染技能
         let scale = this.playground.scale;
-        let x = 1.5, y = 0.9, r = 0.04;
+        let x = 1.25, y = 0.9, r = 0.04;
         // 渲染火球技能图片
         this.render_skill_photo(scale, x, y, r, this.fireball_img);
         // 渲染火球技能蒙板
         this.render_skill_mask(scale, x, y, r, this.fireball_coldtime, 3);
-        x = 1.62;
+        x = 1.37;
         // 渲染闪现技能图片
         this.render_skill_photo(scale, x, y, r, this.blink_img);
         // 渲染闪现技能蒙板

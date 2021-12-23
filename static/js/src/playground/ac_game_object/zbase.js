@@ -52,8 +52,8 @@ let AC_GAME_ANIMATION = (timestamp) => {
             obj.start();
             obj.has_called_start = true;
         } else {
-            obj.update();
             obj.timedelta = timestamp - last_timestamp; // 时间间隔
+            obj.update();
         }
     }
 

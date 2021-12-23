@@ -19,7 +19,7 @@ class Particle extends AcGameObject {
     }
 
     update() {
-        if (this.speed * 0.1 < this.eps) {
+        if (this.speed * 0.1 < this.eps) { // 小于阈值则消失
             this.destroy();
             return false;
         }

@@ -40,6 +40,7 @@ class MultiPlayerSocket {
             } else if (event === "blink") {
                 this.receive_blink(uuid, data.tx, data.ty);
             } else if (event === "message") {
+                console.log(data.username, data.text);
                 this.receive_chat_message(uuid, data.username, data.text);
             }
         })

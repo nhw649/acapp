@@ -11,7 +11,7 @@ class AcGamePlayground {
     }
 
     get_random_color() {
-        let color = ["blue", "pink", "yellow", "red", "grey", "green"];
+        let color = ["blue", "pink", "yellow", "red", "grey", "orange"];
         return color[Math.floor(Math.random() * color.length)];
     }
 
@@ -43,17 +43,16 @@ class AcGamePlayground {
         this.width = unit * 16;
         this.height = unit * 9;
         this.scale = this.height; // 调整窗口大小的放缩基准
-        if (this.game_map) {
-            // 地图存在就调整一次界面
-            this.game_map.resize();
-        }
+        if (this.game_map) this.game_map.resize(); // 地图存在就调整一次界面
+        if (this.mini_map) this.mini_map.resize(); // 小地图存在就调整一次界面
     }
 
-    re_calculate_cx_cy(x, y) {
-        this.cx = x - 0.5 * this.width / this.scale;
-        this.cy = y - 0.5 * this.height / this.scale;
+    re_calculate_cx_cy(x, y) { // 调整位置
+        // 玩家离地图中心点的距离
+        this.cx = x - this.width / 2 / this.scale;
+        this.cy = y - this.height / 2 / this.scale;
 
-        let l = this.game_map.l;
+        let l = this.game_map.l; // 0.15
         if (this.focus_player) {
             this.cx = Math.max(this.cx, -2 * l);
             this.cx = Math.min(this.cx, this.virtual_map_width - (this.width / this.scale - 2 * l));
@@ -81,17 +80,16 @@ class AcGamePlayground {
 
         this.players = []; // 保存游戏玩家
         // 创建自己
+        // let px = Math.random() * this.virtual_map_width, py = Math.random() * this.virtual_map_height; // 随机位置
         this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, 0.05, "white", 0.2, "me", this.root.settings.username, this.root.settings.photo));
 
-        // 根据玩家位置确定画布相对于虚拟地图的偏移量
-        this.re_calculate_cx_cy(this.players[0].x, this.players[0].y);
-        this.focus_player = this.players[0];
+        this.re_calculate_cx_cy(this.players[0].x, this.players[0].y); // 根据玩家位置确定画布相对于虚拟地图的偏移量
+        this.focus_player = this.players[0]; // 聚焦玩家是自己
 
         if (mode === "single mode") {
             for (let i = 0; i < 10; i++) {
-                let px = Math.random() * this.virtual_map_width, py = Math.random() * this.virtual_map_height;
-                // 创建机器人
-                this.players.push(new Player(this, px, py, 0.05, this.get_random_color(), 0.2, "robot"))
+                let px = Math.random() * this.virtual_map_width, py = Math.random() * this.virtual_map_height; // 随机位置
+                this.players.push(new Player(this, px, py, 0.05, this.get_random_color(), 0.2, "robot"));  // 创建机器人
             }
         } else if (mode === "multi mode") {
             this.chat_field = new ChatField(this); // 创建聊天框
@@ -103,9 +101,34 @@ class AcGamePlayground {
                 this.mps.send_create_player(this.root.settings.username, this.root.settings.photo);
             })
         }
+
+        // 在地图和玩家都创建好后,创建小地图对象
+        this.mini_map = new MiniMap(this, this.game_map);
+        this.mini_map.resize();
     }
 
     hide() {
+        // 删除玩家,不能使用for循环,会出现删除位置不匹配
+        while (this.players && this.players.length > 0) {
+            this.players[0].destroy(); // 会调用player的on_destroy,从玩家列表中删除
+        }
+        // 删除game_map
+        if (this.game_map) {
+            this.game_map.destroy();
+            this.game_map = null;
+        }
+        // 删除notice_board
+        if (this.notice_board) {
+            this.notice_board.destroy();
+            this.notice_board = null;
+        }
+        // 删除score_board
+        if (this.score_board) {
+            this.score_board.destroy();
+            this.score_board = null;
+        }
+        this.$playground.empty(); // 删除dom元素
+
         this.$playground.hide();
     }
 }

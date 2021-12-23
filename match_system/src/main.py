@@ -54,7 +54,7 @@ class Pool:
         print("Match Success: %s %s %s" % (ps[0].username, ps[1].username, ps[2].username))
         # 房间名(方便使用keys查找)
         room_name = "room-%s-%s-%s" % (ps[0].uuid, ps[1].uuid, ps[2].uuid)
-        players = []
+        players = [] # 匹配玩家列表
         # 加入同一组
         for p in ps:  # 枚举匹配成功的玩家
             async_to_sync(channel_layer.group_add)(room_name, p.channel_name)

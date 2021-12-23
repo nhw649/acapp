@@ -74,6 +74,38 @@ class MultiPlayer(AsyncWebsocketConsumer):
         )
 
     async def attack(self, data):
+        if not self.room_name:
+            return
+
+        players = cache.get(self.room_name)  # 获取匹配玩家列表
+
+        if not players:
+            return
+
+        for player in players:
+            if player['uuid'] == data['attackee_uuid']:  # 匹配被攻击者uuid
+                player['hp'] -= 25
+
+        remain_cnt = 0  # 剩余玩家数量
+        for player in players:
+            if player['hp'] > 0:
+                remain_cnt += 1
+
+        if remain_cnt > 1:
+            if self.room_name:
+                cache.set(self.room_name, players, 3600)  # 更新redis
+        else:  # 没有剩余玩家则更新数据库
+            def db_update_player_score(username, score):
+                player = Player.objects.get(user__username=username)
+                player.score += score
+                player.save()  # 保存数据
+
+            for player in players:
+                if player['hp'] <= 0:  # 失败扣5分
+                    await database_sync_to_async(db_update_player_score)(player['username'], -5)
+                else:  # 胜利加10分
+                    await database_sync_to_async(db_update_player_score)(player['username'], 10)
+
         # 组内中发送消息
         await self.channel_layer.group_send(
             self.room_name,
@@ -104,6 +136,8 @@ class MultiPlayer(AsyncWebsocketConsumer):
         )
 
     async def chat_message(self, data):
+        if not self.room_name:
+            return
         # 组内中发送消息
         await self.channel_layer.group_send(
             self.room_name,

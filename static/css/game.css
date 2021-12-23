@@ -2,6 +2,10 @@
     box-sizing: border-box;
 }
 
+canvas {
+    outline: none;
+}
+
 .ac-game-menu {
     background-color: rebeccapurple;
     width: 100%;
@@ -45,7 +49,7 @@
     overflow: hidden;
 }
 
-.ac-game-playground > canvas {
+.ac-game-playground .game-map {
     position: relative;
     top: 50%;
     left: 50%;

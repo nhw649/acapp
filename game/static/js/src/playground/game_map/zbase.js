@@ -2,19 +2,19 @@ class GameMap extends AcGameObject {
     constructor(playground) {
         super(); // 相当于将自己注册到了AC_GAME_OBJECTS数组中
         this.playground = playground;
-        this.$canvas = $(`<canvas tabindex=0></canvas>`); // 创建canvas,tabindex="0"表示元素是可聚焦的
+        this.$canvas = $(`<canvas tabindex=0 class="game-map"></canvas>`); // 创建canvas,tabindex="0"表示元素是可聚焦的
         this.ctx = this.$canvas[0].getContext("2d"); // 创建context对象
         this.ctx.canvas.width = this.playground.width; // 设置canvas的宽度
         this.ctx.canvas.height = this.playground.height; // 设置canvas的高度
         this.playground.$playground.append(this.$canvas); // 将canvas添加到游戏界面上
 
-        let width = this.playground.virtual_map_width;
-        let height = this.playground.virtual_map_height;
-        this.l = height * 0.05;
-        this.nx = Math.ceil(width / this.l);
-        this.ny = Math.ceil(height / this.l);
+        let width = this.playground.virtual_map_width; // 3
+        let height = this.playground.virtual_map_height; // 3
+        this.l = height * 0.05; // 0.15
+        this.nx = Math.ceil(width / this.l); // 20
+        this.ny = Math.ceil(height / this.l); // 20
 
-        this.generate_grids();
+        this.generate_grids(); // 生成网格
     }
 
     start() {

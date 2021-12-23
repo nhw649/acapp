@@ -19,13 +19,14 @@ class ClickParticle extends AcGameObject {
     }
 
     update() {
-        if (this.radius < this.eps) {
+        if (this.radius < this.eps) { // 半径小于阈值就消失
             this.destroy();
             return false;
         }
+        // 点击的周围扩散圆
         this.x += this.vx * 1.2 / this.playground.scale;
         this.y += this.vy * 1.2 / this.playground.scale;
-        this.radius *= 0.8;
+        this.radius *= 0.8; // 半径逐渐减小
         this.render();
     }
 

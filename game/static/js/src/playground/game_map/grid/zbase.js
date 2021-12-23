@@ -3,9 +3,11 @@ class Grid extends AcGameObject {
         super();
         this.playground = playground;
         this.ctx = ctx;
+        // 每个格子
         this.i = i;
         this.j = j;
-        this.l = l;
+        this.l = l; // 0.15
+        // 格子的位置
         this.x = this.i * this.l;
         this.y = this.j * this.l;
         this.stroke_color = stroke_color;

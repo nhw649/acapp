@@ -8,11 +8,16 @@
     <script src="https://cdn.acwing.com/static/jquery/js/jquery-3.3.1.min.js" type="module"></script>
     <script src="{% static 'js/dist/game.js' %}" type="module"></script>
     <link rel="stylesheet" href="{% static 'css/game.css' %}">
+    <link rel="icon" href="https://django-project.oss-cn-shanghai.aliyuncs.com/logo.png">
 </head>
 
 <body style="margin: 0">
-    <div id="ac_game_649"></div>
-    <script type="module">
-        import {AcGame} from "{% static 'js/dist/game.js' %}"; $(document).ready(function () { let ac_game = new AcGame("ac_game_649"); })
-    </script>
+<div id="ac_game_649"></div>
+<script type="module">
+    import {AcGame} from "{% static 'js/dist/game.js' %}";
+
+    $(document).ready(function () {
+        let ac_game = new AcGame("ac_game_649");
+    })
+</script>
 </body>
