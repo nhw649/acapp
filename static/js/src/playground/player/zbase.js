@@ -42,7 +42,7 @@ class Player extends AcGameObject {
 
     start() {
         this.playground.player_count++; // 玩家人数+1
-        this.playground.notice_board.write("已准备：" + this.playground.player_count + "人"); // 修改提示板文字
+        // this.playground.notice_board.write("已准备：" + this.playground.player_count + "人"); // 修改提示板文字
 
         if (this.playground.player_count >= 3) {
             this.playground.state = "fighting";
@@ -221,6 +221,7 @@ class Player extends AcGameObject {
         this.radius -= damage; // 玩家血量(半径)减少
         if (this.radius < this.eps) {
             this.destroy(); // 玩家死亡
+
             return false;
         }
         // 击退效果
@@ -251,7 +252,7 @@ class Player extends AcGameObject {
 
     update_win() { // 判断胜利事件
         if (this.playground.state === "fighting" && this.character === "me" && this.playground.players.length === 1) {
-            this.playground.state === "over";
+            this.playground.state = "over";
             this.playground.score_board.win();
         }
     }

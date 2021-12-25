@@ -25,6 +25,7 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
     print('')
     print('Functions:')
     print('  i32 add_player(i32 score, string uuid, string username, string photo, string channel_name)')
+    print('  i32 remove_player(i32 score, string uuid, string username, string channel_name)')
     print('')
     sys.exit(0)
 
@@ -109,6 +110,12 @@ if cmd == 'add_player':
         print('add_player requires 5 args')
         sys.exit(1)
     pp.pprint(client.add_player(eval(args[0]), args[1], args[2], args[3], args[4],))
+
+elif cmd == 'remove_player':
+    if len(args) != 4:
+        print('remove_player requires 4 args')
+        sys.exit(1)
+    pp.pprint(client.remove_player(eval(args[0]), args[1], args[2], args[3],))
 
 else:
     print('Unrecognized method %s' % cmd)

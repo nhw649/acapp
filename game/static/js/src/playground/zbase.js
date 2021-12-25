@@ -61,6 +61,24 @@ class AcGamePlayground {
         }
     }
 
+    // add_cancel_waiting() { // 监听准备中返回菜单事件
+    //     if (this.game_map.$canvas) {
+    //         this.$canvas = this.game_map.$canvas;
+    //         this.$canvas.on('click.cancel', () => { // 点击任意键返回菜单
+    //             // this.mps.send_remove_player(this.root.settings.username);
+    //             this.hide();
+    //             this.root.menu.show();
+    //         })
+    //     }
+    // }
+
+    // off_cancel_waiting() { // 删除监听准备中返回菜单事件
+    //     if (this.game_map.$canvas) {
+    //         this.$canvas = this.game_map.$canvas;
+    //         this.$canvas.off('click.cancel');
+    //     }
+    // }
+
     show(mode) {
         this.mode = mode; // 存储游戏模式
         this.player_count = 0; // 玩家数量
@@ -68,7 +86,6 @@ class AcGamePlayground {
         this.width = this.$playground.width(); // 存储界面的宽度
         this.height = this.$playground.height(); // 存储界面的高度
         this.$playground.show(); // 显示游戏界面
-
         // 虚拟地图大小改成相对大小
         this.virtual_map_width = 3;
         this.virtual_map_height = this.virtual_map_width; // 正方形地图，方便画格子
@@ -76,6 +93,7 @@ class AcGamePlayground {
         this.game_map = new GameMap(this); // 创建游戏地图
         this.notice_board = new NoticeBoard(this); // 创建提示板
         this.score_board = new ScoreBoard(this); // 创建对局结束状态
+
         this.resize();
 
         this.players = []; // 保存游戏玩家
@@ -95,13 +113,14 @@ class AcGamePlayground {
             this.chat_field = new ChatField(this); // 创建聊天框
             this.mps = new MultiPlayerSocket(this); // 建立ws连接
             this.mps.uuid = this.players[0].uuid; // 自己的唯一编号
-
             this.mps.ws.onopen = (() => { // 成功建立连接执行该回调
                 // 向服务器发送创建玩家消息
                 this.mps.send_create_player(this.root.settings.username, this.root.settings.photo);
             })
         }
-
+        // if (this.state === "waiting") {
+        //     this.add_cancel_waiting(); // 准备中返回菜单事件
+        // }
         // 在地图和玩家都创建好后,创建小地图对象
         this.mini_map = new MiniMap(this, this.game_map);
         this.mini_map.resize();
@@ -112,11 +131,6 @@ class AcGamePlayground {
         while (this.players && this.players.length > 0) {
             this.players[0].destroy(); // 会调用player的on_destroy,从玩家列表中删除
         }
-        // 删除game_map
-        if (this.game_map) {
-            this.game_map.destroy();
-            this.game_map = null;
-        }
         // 删除notice_board
         if (this.notice_board) {
             this.notice_board.destroy();
@@ -126,6 +140,11 @@ class AcGamePlayground {
         if (this.score_board) {
             this.score_board.destroy();
             this.score_board = null;
+        }
+        // 删除game_map
+        if (this.game_map) {
+            this.game_map.destroy();
+            this.game_map = null;
         }
         this.$playground.empty(); // 删除dom元素
 

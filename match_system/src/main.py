@@ -42,6 +42,9 @@ class Pool:
     def add_player(self, player):
         self.players.append(player)
 
+    # def remove_player(self, player):
+    #     self.players.remove(player)
+
     def check_match(self, a, b):  # 检查是否能够匹配
         # if a.username == b.username:  # 不能匹配自己
         #     return False
@@ -54,7 +57,7 @@ class Pool:
         print("Match Success: %s %s %s" % (ps[0].username, ps[1].username, ps[2].username))
         # 房间名(方便使用keys查找)
         room_name = "room-%s-%s-%s" % (ps[0].uuid, ps[1].uuid, ps[2].uuid)
-        players = [] # 匹配玩家列表
+        players = []  # 匹配玩家列表
         # 加入同一组
         for p in ps:  # 枚举匹配成功的玩家
             async_to_sync(channel_layer.group_add)(room_name, p.channel_name)
@@ -104,6 +107,13 @@ class MatchHandler:
         player = Player(score, uuid, username, photo, channel_name)
         queue.put(player)
         return 0
+
+    # def remove_player(self, score, uuid, username, channel_name):
+    #     print("Remove Player: %s %d" % (username, score))
+    #     print(queue.empty())
+    #     player = queue.get()
+    #     print(player)
+    #     return 0
 
 
 # 取出消息队列中的玩家

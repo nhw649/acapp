@@ -62,6 +62,15 @@ class MultiPlayerSocket {
         this.playground.players.push(player);
     }
 
+    // send_remove_player(username) { // 向服务器发送删除玩家消息
+        // let outer = this;
+        // this.ws.send(JSON.stringify({
+        //     'event': 'remove_player',
+        //     'uuid': outer.uuid,
+        //     'username': username,
+        // }))
+    // }
+
     send_move_to(tx, ty) { // 向服务器发送玩家移动消息
         let outer = this;
         this.ws.send(JSON.stringify({

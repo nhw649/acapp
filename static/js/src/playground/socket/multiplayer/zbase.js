@@ -40,7 +40,6 @@ class MultiPlayerSocket {
             } else if (event === "blink") {
                 this.receive_blink(uuid, data.tx, data.ty);
             } else if (event === "message") {
-                console.log(data.username, data.text);
                 this.receive_chat_message(uuid, data.username, data.text);
             }
         })
@@ -62,6 +61,15 @@ class MultiPlayerSocket {
         player.uuid = uuid; // 统一不同窗口同一玩家的uid
         this.playground.players.push(player);
     }
+
+    // send_remove_player(username) { // 向服务器发送删除玩家消息
+        // let outer = this;
+        // this.ws.send(JSON.stringify({
+        //     'event': 'remove_player',
+        //     'uuid': outer.uuid,
+        //     'username': username,
+        // }))
+    // }
 
     send_move_to(tx, ty) { // 向服务器发送玩家移动消息
         let outer = this;

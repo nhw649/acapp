@@ -19,13 +19,11 @@ class ScoreBoard extends AcGameObject {
     }
 
     add_listening_events() {
-        if (this.playground.game_map.$canvas) {
-            this.$canvas = this.playground.game_map.$canvas;
-            this.$canvas.on('click', () => { // 点击任意键返回菜单
-                this.playground.hide();
-                this.playground.root.menu.show();
-            })
-        }
+        this.$canvas = this.playground.game_map.$canvas;
+        this.$canvas.on('click', () => { // 点击任意键返回菜单
+            this.playground.hide();
+            this.playground.root.menu.show();
+        })
     }
 
     win() {
