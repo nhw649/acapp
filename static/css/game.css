@@ -7,10 +7,9 @@ canvas {
 }
 
 .ac-game-menu {
-    background-color: rebeccapurple;
     width: 100%;
     height: 100%;
-    background-image: url("/static/image/menu/background.gif");
+    /*background-image: url("https://django-project.oss-cn-shanghai.aliyuncs.com/background/201112111638-5.jpg");*/
     background-size: 100% 100%;
     user-select: none;
 }
@@ -39,6 +38,25 @@ canvas {
 .menu-field-item:hover {
     transform: scale(1.2);
     transition: all 0.2s;
+}
+
+.ac-game-rank {
+    width: 80%;
+    height: 100%;
+    margin: 0 auto;
+    background-color: rgba(233, 233, 233, 0.9);
+    overflow: hidden;
+    padding: 20px;
+}
+
+.ac-game-rank .rank-table {
+    width: 100%;
+    height: 422px;
+    overflow: hidden;
+}
+
+.ac-game-rank nav {
+
 }
 
 .ac-game-playground {

@@ -110,7 +110,9 @@ class Settings {
     add_listening_events_login() { // 登录相关事件
         this.$login_register.click(() => {
             this.$login.fadeOut(300);
-            this.$register.fadeIn(300);
+            setTimeout(() => {
+                this.$register.fadeIn(300);
+            }, 300)
         });
         this.$login_submit.click(() => {
             this.user_login();
@@ -120,7 +122,9 @@ class Settings {
     add_listening_events_register() { // 注册相关事件
         this.$register_back.click(() => {
             this.$register.fadeOut(300);
-            this.$login.fadeIn(300);
+            setTimeout(() => {
+                this.$login.fadeIn(300);
+            }, 300)
         });
         this.$register_submit.click(() => {
             this.user_register();

@@ -10,7 +10,10 @@ class AcGameMenu {
         <div class="menu-field-item menu-field-item-multi">多人模式</div>
         <br>
         <br>
-        <div class="menu-field-item menu-field-item-settings">退出</div>
+        <div class="menu-field-item menu-field-item-rank">排行榜</div>
+        <br>
+        <br>
+        <div class="menu-field-item menu-field-item-settings">设置</div>
     </div>
 </div>
 `);
@@ -18,6 +21,7 @@ class AcGameMenu {
         this.root.$ac_game.append(this.$menu); // 将菜单渲染到界面上
         this.$single = this.$menu.find(".menu-field-item-single");
         this.$multi = this.$menu.find(".menu-field-item-multi");
+        this.$rank = this.$menu.find(".menu-field-item-rank");
         this.$settings = this.$menu.find(".menu-field-item-settings");
         this.start();
     }
@@ -35,6 +39,10 @@ class AcGameMenu {
             this.hide();
             this.root.playground.show("multi mode"); // 显示多人模式游戏场景
         });
+        this.$rank.click(()=>{
+            this.hide();
+            this.root.rank.show(); // 显示排行榜
+        })
         this.$settings.click(() => {
             this.root.settings.user_logout();
         })

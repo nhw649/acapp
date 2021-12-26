@@ -44,7 +44,7 @@ class ChatField {
         return $(`<div>${message}</div>`);
     }
 
-    dateFormat(fmt, date) {
+    dateFormat(fmt, date) { // 格式化时间
         let ret;
         const opt = {
             "Y+": date.getFullYear().toString(),        // 年
@@ -77,7 +77,7 @@ class ChatField {
         }
     }
 
-    show_history() {
+    show_history() { // 显示聊天记录
         // 如果关闭聊天框则3s后关闭聊天记录，如果未关闭聊天框则聊天记录一直显示
         if (this.timer_id) clearTimeout(this.timer_id);
         this.$history.fadeIn();

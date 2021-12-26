@@ -29,8 +29,8 @@ class Player extends AcGameObject {
             this.img.src = this.photo;
         }
         if (this.character === "me") { // 是自己才有冷却时间
-            this.fireball_coldtime = 3; // 火球冷却时间
-            this.blink_coldtime = 5; // 火球冷却时间
+            this.fireball_coldtime = 1; // 火球冷却时间
+            this.blink_coldtime = 3; // 闪现冷却时间
             // 创建技能图片
             this.fireball_img = new Image();
             this.fireball_img.src = "https://django-project.oss-cn-shanghai.aliyuncs.com/playground/skill/fireball.png";
@@ -165,7 +165,7 @@ class Player extends AcGameObject {
         let fireball = new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 0.01);
         this.fireballs.push(fireball);
 
-        this.fireball_coldtime = 3; // 重置火球cd
+        this.fireball_coldtime = 1; // 重置火球cd
         return fireball; // 便于获取火球的uuid
     }
 
@@ -186,7 +186,7 @@ class Player extends AcGameObject {
         this.x += d * Math.cos(angle);
         this.y += d * Math.sin(angle);
 
-        this.blink_coldtime = 5; // 重置闪现cd
+        this.blink_coldtime = 3; // 重置闪现cd
         this.move_length = 0; // 闪现完停止移动
     }
 
@@ -320,14 +320,20 @@ class Player extends AcGameObject {
         }
     }
 
-    render_skill_photo(scale, x, y, r, img) { // 渲染技能图片
+    render_skill_photo(scale, x, y, r, img, text) { // 渲染技能图片
         this.ctx.save();
         this.ctx.beginPath();
         this.ctx.arc(x * scale, y * scale, r * scale, 0, Math.PI * 2, false);
         this.ctx.stroke();
         this.ctx.clip();
         this.ctx.drawImage(img, (x - r) * scale, (y - r) * scale, r * 2 * scale, r * 2 * scale);
+        // 渲染技能按键文字
+        this.ctx.font = "bold 25px Arial"
+        this.ctx.fillStyle = "white"
+        this.ctx.textBaseline = "middle";
+        this.ctx.fillText(text, x * scale, y * scale * 1.02)
         this.ctx.restore();
+        this.ctx.text
     }
 
     render_skill_mask(scale, x, y, r, coldtime, init_coldtime) { // 渲染技能蒙板
@@ -345,14 +351,14 @@ class Player extends AcGameObject {
         let scale = this.playground.scale;
         let x = 1.25, y = 0.9, r = 0.04;
         // 渲染火球技能图片
-        this.render_skill_photo(scale, x, y, r, this.fireball_img);
+        this.render_skill_photo(scale, x, y, r, this.fireball_img, "Q");
         // 渲染火球技能蒙板
-        this.render_skill_mask(scale, x, y, r, this.fireball_coldtime, 3);
+        this.render_skill_mask(scale, x, y, r, this.fireball_coldtime, 1);
         x = 1.37;
         // 渲染闪现技能图片
-        this.render_skill_photo(scale, x, y, r, this.blink_img);
+        this.render_skill_photo(scale, x, y, r, this.blink_img, "F");
         // 渲染闪现技能蒙板
-        this.render_skill_mask(scale, x, y, r, this.blink_coldtime, 5);
+        this.render_skill_mask(scale, x, y, r, this.blink_coldtime, 3);
     }
 
     render() {
