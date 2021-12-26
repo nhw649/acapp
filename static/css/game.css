@@ -58,15 +58,18 @@ canvas {
 
 .chat-field-history {
     position: absolute;
-    top: 66%;
+    top: 60%;
     left: 20%;
     transform: translate(-50%, -50%);
     width: 20%;
-    height: 32%;
+    height: 35%;
     color: white;
-    font-size: 2vh;
+    font-size: 2.3vh;
     padding: 5px;
     overflow: auto;
+    word-break: break-all; /*超出会自动换行*/
+    white-space: pre-wrap; /*保留空白符序列,但是正常地进行换行*/
+    user-select: text; /*可以选中文字*/
 }
 
 .chat-field-history::-webkit-scrollbar {
@@ -75,14 +78,37 @@ canvas {
 
 .chat-field-input {
     position: absolute;
-    top: 86%;
+    top: 82%;
     left: 20%;
     transform: translate(-50%, -50%);
     width: 20%;
-    height: 3vh;
+    height: 4vh;
     color: white;
-    font-size: 2vh;
+    font-size: 2.3vh;
     background-color: rgba(222, 225, 230, 0.2);
+    outline: none;
+    padding: 20px;
+    box-sizing: border-box;
+    border: 0;
+    border-radius: 7px;
+}
+
+::-webkit-input-placeholder { /* WebKit browsers */
+    color: white;
+}
+
+:-moz-placeholder { /* Mozilla Firefox 4 to 18 */
+    color: white;
+    opacity: 1;
+}
+
+::-moz-placeholder { /* Mozilla Firefox 19+ */
+    color: white;
+    opacity: 1;
+}
+
+:-ms-input-placeholder { /* Internet Explorer 10+ */
+    color: white;
 }
 
 .acgame-settings {
