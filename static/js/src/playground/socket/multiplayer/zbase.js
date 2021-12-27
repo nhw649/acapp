@@ -158,7 +158,6 @@ class MultiPlayerSocket {
     }
 
     receive_chat_message(uuid, username, text) {
-        console.log(text)
         this.playground.chat_field.add_message(username, text); // 添加到聊天历史记录上
     }
 }

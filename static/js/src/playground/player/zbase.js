@@ -156,7 +156,7 @@ class Player extends AcGameObject {
         let y = this.y;
         let radius = 0.01;
         let angle = Math.atan2(ty - this.y, tx - this.x);
-        let speed = 0.5;
+        let speed = 0.6;
         let color = "orange";
         let vx = Math.cos(angle);
         let vy = Math.sin(angle);
@@ -206,7 +206,7 @@ class Player extends AcGameObject {
 
     is_attacked(angle, damage) { // 被攻击触发效果
         // 粒子效果
-        for (let i = 0; i < Math.random() * 5 + 10; i++) {
+        for (let i = 0; i < Math.random() * 10 + 10; i++) {
             let x = this.x,
                 y = this.y;
             let radius = this.radius * Math.random() * 0.5;
@@ -215,20 +215,19 @@ class Player extends AcGameObject {
             let vx = Math.cos(angle),
                 vy = Math.sin(angle);
             let speed = this.speed * 6;
-            let move_length = this.radius * Math.random() * 5;
+            let move_length = this.radius * Math.random() * 3.5;
             new Particle(this.playground, x, y, radius, color, vx, vy, speed, move_length);
         }
         this.radius -= damage; // 玩家血量(半径)减少
         if (this.radius < this.eps) {
             this.destroy(); // 玩家死亡
-
             return false;
         }
         // 击退效果
         this.damage_x = Math.cos(angle);
         this.damage_y = Math.sin(angle);
         this.damage_speed = damage * 50;
-        this.speed *= 0.8; // 血量减少移速变慢
+        this.speed *= 0.9; // 血量减少移速变慢
     }
 
     get_dist(x1, y1, x2, y2) { // 获取两点距离
@@ -266,7 +265,7 @@ class Player extends AcGameObject {
     }
 
     update_move() { // 更新玩家移动
-        if (this.character === "robot" && this.spend_time > 4 && Math.random() < 1 / 100) { // 机器人自动攻击
+        if (this.character === "robot" && this.spend_time > 4 && Math.random() < 1 / 300) { // 机器人自动攻击
             let player = this.playground.players[Math.floor(Math.random() * this.playground.players.length)];
             while (player === this) { // 机器人不能攻击自己
                 player = this.playground.players[Math.floor(Math.random() * this.playground.players.length)];

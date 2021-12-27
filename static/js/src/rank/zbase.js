@@ -79,6 +79,7 @@ class Rank {
                 "page": 1
             },
             success: (res) => {
+                $(".pagination").html("");
                 outer.num_pages = res.num_pages; // 获取总页数
                 // 渲染翻页按钮
                 $(".pagination").append($(`<li class="page-item pre-page disabled"><a class="page-link" href="javascript:;">上一页</a></li>`))

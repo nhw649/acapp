@@ -5,16 +5,16 @@
 html, body {
     width: 100%;
     height: 100%;
-    background-image: url("https://django-project.oss-cn-shanghai.aliyuncs.com/background/201112111638-5.jpg");
+    /*background-image: url("https://django-project.oss-cn-shanghai.aliyuncs.com/background/201112111638-5.jpg");*/
+    /*background-size: 100% 100%;*/
     background-color: mediumpurple;
-    background-size: 100% 100%;
 }
 
 canvas {
     outline: none;
 }
 
-.ac-game-menu {
+.ac-game-menu, .ac-game-setting, .ac-game-difficulty {
     width: 100%;
     height: 100%;
     /*background-image: url("https://django-project.oss-cn-shanghai.aliyuncs.com/background/201112111638-5.jpg");*/
@@ -22,14 +22,14 @@ canvas {
     user-select: none;
 }
 
-.ac-game-menu-field {
+.ac-game-menu-field, .ac-game-setting-field, .ac-game-difficulty-field {
     width: 20vw;
     position: relative;
     top: 20%;
     left: 20%;
 }
 
-.menu-field-item {
+.menu-field-item, .setting-field-item, .difficulty-field-item {
     height: 10vh;
     width: 15vw;
     color: white;
@@ -43,9 +43,21 @@ canvas {
     cursor: pointer;
 }
 
-.menu-field-item:hover {
+.menu-field-item:hover, .setting-field-item:hover, .difficulty-field-item:hover {
     transform: scale(1.2);
     transition: all 0.2s;
+}
+
+.ac-game-setting-description {
+    padding: 20px;
+    width: 50%;
+    height: 60%;
+    background-color: rgba(233, 233, 233, 0.9);
+    border-radius: 10px;
+    position: absolute;
+    right: 10%;
+    top: 20%;
+    font-size: 20px;
 }
 
 .ac-game-rank {
@@ -61,6 +73,81 @@ canvas {
     width: 100%;
     height: 422px;
     overflow: hidden;
+}
+
+.ac-game-skin {
+    width: 80%;
+    height: 100%;
+    margin: 0 auto;
+    background-color: rgba(207, 186, 240, 0.6);
+    overflow: hidden;
+}
+
+.ac-game-skin .skin-back {
+    position: absolute;
+    top: 3%;
+    left: 12%;
+    z-index: 999;
+}
+
+.ac-game-skin .carousel {
+    margin: 0 auto;
+}
+
+.ac-game-skin .carousel-item {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.ac-game-skin .carousel-item img {
+    cursor: pointer;
+    user-select: none;
+    width: 45vh;
+    height: 45vh;
+    border-radius: 50%;
+    margin: 15vh auto 0 auto;
+    transition: all 0.3s;
+}
+
+.ac-game-skin .carousel-item img:hover {
+    transform: scale(1.2);
+}
+
+.ac-game-skin .carousel-caption {
+    position: absolute;
+    top: 70%;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #333333;
+}
+
+.ac-game-skin .carousel-caption p {
+    font-size: ;
+}
+
+.ac-game-skin .carousel-indicators {
+    margin-bottom: 5rem;
+}
+
+.ac-game-skin .carousel button {
+    height: 40px;
+    outline: none;
+    border: none;
+    background-color: transparent;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.ac-game-skin button .carousel-control-prev-icon {
+    width: 50px;
+    height: 50px;
+}
+
+.ac-game-skin button .carousel-control-next-icon {
+    width: 50px;
+    height: 50px;
 }
 
 .ac-game-playground {

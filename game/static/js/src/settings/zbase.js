@@ -210,6 +210,7 @@ class Settings {
     }
 
     start() {
+        $("audio")[0].pause(); // 暂停音乐
         if (this.platform === "web") {
             this.getinfo_web();
             this.add_listening_events();
@@ -277,8 +278,11 @@ class Settings {
     }
 
     hide() {
+        this.$settings.hide();
     }
 
     show() {
+        $("audio")[0].pause(); // 暂停音乐
+        this.$settings.show();
     }
 }

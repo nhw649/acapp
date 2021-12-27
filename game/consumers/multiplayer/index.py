@@ -123,10 +123,10 @@ class MultiPlayer(AsyncWebsocketConsumer):
                 player.save()  # 保存数据
 
             for player in players:
-                if player['hp'] <= 0:  # 失败扣5分
-                    await database_sync_to_async(db_update_player_score)(player['username'], -5)
-                else:  # 胜利加10分
-                    await database_sync_to_async(db_update_player_score)(player['username'], 10)
+                if player['hp'] <= 0:  # 失败扣50分
+                    await database_sync_to_async(db_update_player_score)(player['username'], -50)
+                else:  # 胜利加100分
+                    await database_sync_to_async(db_update_player_score)(player['username'], 100)
 
         # 组内中发送消息
         await self.channel_layer.group_send(

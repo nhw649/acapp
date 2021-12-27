@@ -86,7 +86,6 @@ class FireBall extends AcGameObject {
             ctx_y > 1.1 * this.playground.height / scale) {
             return;
         }
-
         this.ctx.beginPath();
         this.ctx.arc(ctx_x * scale, ctx_y * scale, this.radius * scale, 0, Math.PI * 2, false);
         this.ctx.fillStyle = this.color;
