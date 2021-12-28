@@ -25,11 +25,13 @@ queue = Queue()  # 初始化消息队列
 
 # 玩家
 class Player:
-    def __init__(self, score, uuid, username, photo, channel_name):
+    def __init__(self, score, uuid, username, photo, px, py, channel_name):
         self.score = score
         self.uuid = uuid
         self.username = username
         self.photo = photo
+        self.px = px
+        self.py = py
         self.channel_name = channel_name
         self.waiting_time = 0  # 初始化等待时间
 
@@ -65,7 +67,9 @@ class Pool:
                 'uuid': p.uuid,
                 'username': p.username,
                 'photo': p.photo,
-                'hp': 100  # 血量
+                'px': p.px,
+                'py': p.py,
+                # 'hp': 100  # 血量
             })
         cache.set(room_name, players, 3600)  # 加入redis
         # 广播
@@ -78,6 +82,8 @@ class Pool:
                     'uuid': p.uuid,
                     'username': p.username,
                     'photo': p.photo,
+                    'px': p.px,
+                    'py': p.py
                 }
             )
 
@@ -102,9 +108,9 @@ class Pool:
 
 
 class MatchHandler:
-    def add_player(self, score, uuid, username, photo, channel_name):
+    def add_player(self, score, uuid, username, photo, px, py, channel_name):
         print("Add Player: %s %d" % (username, score))
-        player = Player(score, uuid, username, photo, channel_name)
+        player = Player(score, uuid, username, photo, px, py, channel_name)
         queue.put(player)
         return 0
 

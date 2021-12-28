@@ -81,8 +81,7 @@ class AcGamePlayground {
 
     show() {
         this.$playground.show(); // 显示游戏界面
-        console.log(this.root.menu.mode)
-        let mode = this.root.menu.mode; // 存储游戏模式
+        this.mode = this.root.menu.mode; // 存储游戏模式
         this.player_count = 0; // 玩家数量
         this.state = "waiting"; // 游戏状态 waiting - fighting - over
         this.width = this.$playground.width(); // 存储界面的宽度
@@ -98,28 +97,64 @@ class AcGamePlayground {
         this.resize();
 
         this.players = []; // 保存游戏玩家
-        // 创建自己
-        let px = Math.random() * this.virtual_map_width, py = Math.random() * this.virtual_map_height; // 随机位置
-        this.players.push(new Player(this, px, py, 0.05, "white", 0.25, "me", this.root.settings.username, this.root.skin.img_src || this.root.settings.photo));
-        // this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, 0.05, "white", 0.2, "me", this.root.settings.username, this.root.settings.photo));
 
-        this.re_calculate_cx_cy(this.players[0].x, this.players[0].y); // 根据玩家位置确定画布相对于虚拟地图的偏移量
-        this.focus_player = this.players[0]; // 聚焦玩家是自己
-
-        if (mode === "single mode") {
-            // console.log(this.root.difficulty.difficulty_mode)
-
-            for (let i = 0; i < 10; i++) {
+        if (this.mode === "single mode") {
+            // 根据不同难度创建玩家
+            let difficult_mode = this.root.difficult.difficult_mode;
+            if (difficult_mode === "easy") { // 简单模式(敌人数量减少,玩家移动速度更快,攻击频率变慢,火球移动距离变短,火球移动速度变慢,出生位置随机)
+                // 创建自己
                 let px = Math.random() * this.virtual_map_width, py = Math.random() * this.virtual_map_height; // 随机位置
-                this.players.push(new Player(this, px, py, 0.05, this.get_random_color(), 0.25, "robot"));  // 创建机器人
+                this.players.push(new Player(this, px, py, 0.04, "rgb(203,11,10)", 0.25, "me", this.root.settings.username, this.root.skin.img_src || this.root.settings.photo));
+
+                this.re_calculate_cx_cy(this.players[0].x, this.players[0].y); // 根据玩家位置确定画布相对于虚拟地图的偏移量
+                this.focus_player = this.players[0]; // 聚焦玩家是自己
+
+                // 创建机器人
+                for (let i = 0; i < 10; i++) {
+                    let px = Math.random() * this.virtual_map_width, py = Math.random() * this.virtual_map_height; // 随机位置
+                    this.players.push(new Player(this, px, py, 0.04, this.get_random_color(), 0.2, "robot"));  // 创建机器人
+                }
+            } else if (difficult_mode === "normal") { // 普通模式(和玩家一样,出生位置随机)
+                // 创建自己
+                let px = Math.random() * this.virtual_map_width, py = Math.random() * this.virtual_map_height; // 随机位置
+                this.players.push(new Player(this, px, py, 0.04, "rgb(203,11,10)", 0.25, "me", this.root.settings.username, this.root.skin.img_src || this.root.settings.photo));
+
+                this.re_calculate_cx_cy(this.players[0].x, this.players[0].y); // 根据玩家位置确定画布相对于虚拟地图的偏移量
+                this.focus_player = this.players[0]; // 聚焦玩家是自己
+
+                // 创建机器人
+                for (let i = 0; i < 15; i++) {
+                    let px = Math.random() * this.virtual_map_width, py = Math.random() * this.virtual_map_height; // 随机位置
+                    this.players.push(new Player(this, px, py, 0.04, this.get_random_color(), 0.25, "robot"));  // 创建机器人
+                }
+            } else if (difficult_mode === "hard") { // 困难模式(敌人数量增多,速度变快,攻击频率变快,火球移动距离变长,火球移动速度变快,出生位置一样)
+                // 创建自己
+                let px = Math.random() * this.virtual_map_width, py = Math.random() * this.virtual_map_height; // 随机位置
+                this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, 0.04, "rgb(203,11,10)", 0.25, "me", this.root.settings.username, this.root.skin.img_src || this.root.settings.photo));
+
+                this.re_calculate_cx_cy(this.players[0].x, this.players[0].y); // 根据玩家位置确定画布相对于虚拟地图的偏移量
+                this.focus_player = this.players[0]; // 聚焦玩家是自己
+
+                // 创建机器人
+                for (let i = 0; i < 20; i++) {
+                    this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, 0.04, this.get_random_color(), 0.3, "robot"));  // 创建机器人
+                }
             }
-        } else if (mode === "multi mode") {
+        } else if (this.mode === "multi mode") {
+            // 创建自己
+            let px = Math.random() * this.virtual_map_width, py = Math.random() * this.virtual_map_height; // 随机位置
+            this.players.push(new Player(this, px, py, 0.04, "rgb(203,11,10)", 0.25, "me", this.root.settings.username, this.root.skin.img_src || this.root.settings.photo));
+            // this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, 0.05, "rgb(203,11,10)", 0.2, "me", this.root.settings.username, this.root.settings.photo));
+
+            this.re_calculate_cx_cy(this.players[0].x, this.players[0].y); // 根据玩家位置确定画布相对于虚拟地图的偏移量
+            this.focus_player = this.players[0]; // 聚焦玩家是自己
+
             this.chat_field = new ChatField(this); // 创建聊天框
             this.mps = new MultiPlayerSocket(this); // 建立ws连接
             this.mps.uuid = this.players[0].uuid; // 自己的唯一编号
             this.mps.ws.onopen = (() => { // 成功建立连接执行该回调
                 // 向服务器发送创建玩家消息
-                this.mps.send_create_player(this.root.settings.username, this.root.skin.img_src || this.root.settings.photo);
+                this.mps.send_create_player(this.root.settings.username, this.root.skin.img_src || this.root.settings.photo, px, py);
             })
         }
         // if (this.state === "waiting") {

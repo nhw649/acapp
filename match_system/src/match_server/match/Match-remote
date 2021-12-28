@@ -24,8 +24,8 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
     print('Usage: ' + sys.argv[0] + ' [-h host[:port]] [-u url] [-f[ramed]] [-s[sl]] [-novalidate] [-ca_certs certs] [-keyfile keyfile] [-certfile certfile] function [arg1 [arg2...]]')
     print('')
     print('Functions:')
-    print('  i32 add_player(i32 score, string uuid, string username, string photo, string channel_name)')
-    print('  i32 remove_player(i32 score, string uuid, string username, string channel_name)')
+    print('  i32 add_player(i32 score, string uuid, string username, string photo, double px, double py, string channel_name)')
+    print('  i32 remove_player(i32 score, string uuid, string username, string photo, double px, double py, string channel_name)')
     print('')
     sys.exit(0)
 
@@ -106,16 +106,16 @@ client = Match.Client(protocol)
 transport.open()
 
 if cmd == 'add_player':
-    if len(args) != 5:
-        print('add_player requires 5 args')
+    if len(args) != 7:
+        print('add_player requires 7 args')
         sys.exit(1)
-    pp.pprint(client.add_player(eval(args[0]), args[1], args[2], args[3], args[4],))
+    pp.pprint(client.add_player(eval(args[0]), args[1], args[2], args[3], eval(args[4]), eval(args[5]), args[6],))
 
 elif cmd == 'remove_player':
-    if len(args) != 4:
-        print('remove_player requires 4 args')
+    if len(args) != 7:
+        print('remove_player requires 7 args')
         sys.exit(1)
-    pp.pprint(client.remove_player(eval(args[0]), args[1], args[2], args[3],))
+    pp.pprint(client.remove_player(eval(args[0]), args[1], args[2], args[3], eval(args[4]), eval(args[5]), args[6],))
 
 else:
     print('Unrecognized method %s' % cmd)

@@ -8,7 +8,7 @@ export class AcGame {
         this.menu = new AcGameMenu(this);
         this.rank = new Rank(this);
         this.setting = new Setting(this);
-        this.difficulty = new Difficulty(this);
+        this.difficult = new Difficult(this);
         this.skin = new Skin(this);
         this.playground = new AcGamePlayground(this);
         this.start();

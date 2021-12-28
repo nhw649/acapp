@@ -20,10 +20,10 @@ class Setting {
 </div>
 </div>`);
         this.root.$ac_game.append(this.$setting);
-        this.$back = this.$setting.find(".setting-field-item-back");
+        this.$setting_back = this.$setting.find(".setting-field-item-back");
         this.$audio = $("audio");
         this.$voice = this.$setting.find(".setting-field-item-voice");
-        this.$description = this.$setting.find(".setting-field-item-description");
+        this.$setting_description = this.$setting.find(".setting-field-item-description");
         this.$logout = this.$setting.find(".setting-field-item-logout");
         this.hide(); // 隐藏设置界面
         this.start();
@@ -34,7 +34,7 @@ class Setting {
     }
 
     add_listening_events() {
-        this.$back.click(() => { // 返回
+        this.$setting_back.click(() => { // 返回
             this.hide();
             this.root.menu.show();
         });
@@ -49,13 +49,16 @@ class Setting {
             }
         });
 
-        this.$description.click(() => { // 游戏说明
-            $(".ac-game-setting-description").fadeIn(300);
-        })
+        this.$setting_description.mouseenter(() => { // 显示游戏说明
+            $(".ac-game-setting-description").fadeIn(100);
+        });
+        this.$setting_description.mouseleave(() => { // 关闭游戏说明
+            $(".ac-game-setting-description").fadeOut(100);
+        });
 
         this.$logout.click(() => { // 退出登录
             this.root.settings.user_logout();
-        })
+        });
     }
 
     show() {

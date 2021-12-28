@@ -21,8 +21,11 @@ class Player extends AcGameObject {
         this.eps = 0.01; // 用来和移动距离进行比较
         this.spend_time = 0; // 倒计时开始
         this.fireballs = []; // 存储每个玩家发的火球
-
         this.cur_skill = null; // 存储技能
+
+        this.fireball_speed = 0.7; // 火球移动速度
+        this.fireball_move_length = 1.4; // 火球移动距离
+
         if (this.character !== "robot") { // 不是机器人才拥有头像
             // 创建头像图片
             this.img = new Image();
@@ -41,6 +44,40 @@ class Player extends AcGameObject {
     }
 
     start() {
+        // 单人模式的难度调整
+        if (this.playground.mode === "single mode") {
+            this.difficult_mode = this.playground.root.difficult.difficult_mode;
+            if (this.character === "me") {
+                if (this.difficult_mode === "easy") {
+                    this.fireball_speed = 0.7; // 火球移动速度
+                    this.fireball_move_length = 1.3; // 火球移动距离
+                    this.attack_frequency = 1 / 100; // 攻击频率
+                } else if (this.difficult_mode === "normal") {
+                    this.fireball_speed = 0.7; // 火球移动速度
+                    this.fireball_move_length = 1.4; // 火球移动距离
+                    this.attack_frequency = 1 / 200; // 攻击频率
+                } else if (this.difficult_mode === "hard") {
+                    this.fireball_speed = 0.7; // 火球移动速度
+                    this.fireball_move_length = 1.5; // 火球移动距离
+                    this.attack_frequency = 1 / 300; // 攻击频率
+                }
+            } else if (this.character === "robot") {
+                if (this.difficult_mode === "easy") {
+                    this.fireball_speed = 0.6; // 火球移动速度
+                    this.fireball_move_length = 1.3; // 火球移动距离
+                    this.attack_frequency = 1 / 100; // 攻击频率
+                } else if (this.difficult_mode === "normal") {
+                    this.fireball_speed = 0.7; // 火球移动速度
+                    this.fireball_move_length = 1.4; // 火球移动距离
+                    this.attack_frequency = 1 / 200; // 攻击频率
+                } else if (this.difficult_mode === "hard") {
+                    this.fireball_speed = 0.8; // 火球移动速度
+                    this.fireball_move_length = 1.5; // 火球移动距离
+                    this.attack_frequency = 1 / 300; // 攻击频率
+                }
+            }
+        }
+
         this.playground.player_count++; // 玩家人数+1
         // this.playground.notice_board.write("已准备：" + this.playground.player_count + "人"); // 修改提示板文字
 
@@ -81,7 +118,6 @@ class Player extends AcGameObject {
                 for (let i = 0; i < 20; i++) { // 右键点击粒子效果
                     new ClickParticle(this.playground, tx, ty, "rgb(74,149,58)");
                 }
-
                 // let tx = (e.clientX - rect.left) / this.playground.scale;
                 // let ty = (e.clientY - rect.top) / this.playground.scale;
                 this.move_to(tx, ty);
@@ -149,22 +185,17 @@ class Player extends AcGameObject {
     }
 
     shoot_fireball(tx, ty) {
-        // if (this.playground.players.indexOf(this) === -1) { // 玩家死亡不能发射火球
-        //     return;
-        // }
         let x = this.x;
         let y = this.y;
         let radius = 0.01;
         let angle = Math.atan2(ty - this.y, tx - this.x);
-        let speed = 0.6;
+        // let speed = 0.6;
         let color = "orange";
         let vx = Math.cos(angle);
         let vy = Math.sin(angle);
-        let move_length = 1.3; // 火球移动距离
-        // 创建火球,伤害值比例是玩家半径比例的20%,相当于可打掉玩家20%血量
-        let fireball = new FireBall(this.playground, this, x, y, radius, vx, vy, color, speed, move_length, 0.01);
-        this.fireballs.push(fireball);
-
+        // let move_length = 1.3; // 火球移动距离
+        // 创建火球
+        let fireball = new FireBall(this.playground, this, x, y, radius, vx, vy, color, this.fireball_speed, this.fireball_move_length, 0.004);
         this.fireball_coldtime = 1; // 重置火球cd
         return fireball; // 便于获取火球的uuid
     }
@@ -226,7 +257,7 @@ class Player extends AcGameObject {
         // 击退效果
         this.damage_x = Math.cos(angle);
         this.damage_y = Math.sin(angle);
-        this.damage_speed = damage * 50;
+        this.damage_speed = damage * 200;
         this.speed *= 0.9; // 血量减少移速变慢
     }
 
@@ -265,7 +296,7 @@ class Player extends AcGameObject {
     }
 
     update_move() { // 更新玩家移动
-        if (this.character === "robot" && this.spend_time > 4 && Math.random() < 1 / 300) { // 机器人自动攻击
+        if (this.character === "robot" && this.spend_time > 4 && Math.random() < this.attack_frequency) { // 机器人自动攻击
             let player = this.playground.players[Math.floor(Math.random() * this.playground.players.length)];
             while (player === this) { // 机器人不能攻击自己
                 player = this.playground.players[Math.floor(Math.random() * this.playground.players.length)];
@@ -372,7 +403,8 @@ class Player extends AcGameObject {
                 return;
             }
         }
-        if (this.character !== "robot") { // 不是机器人才渲染头像
+        if (this.character !== "robot") { // 不是机器人才渲染
+            // 渲染头像
             this.ctx.save();
             this.ctx.strokeStyle = this.color; // 填充边框颜色
             this.ctx.beginPath();
@@ -380,8 +412,20 @@ class Player extends AcGameObject {
             this.ctx.stroke();
             this.ctx.clip();
             this.ctx.drawImage(this.img, (ctx_x - this.radius) * scale, (ctx_y - this.radius) * scale, this.radius * 2 * scale, this.radius * 2 * scale);
-            this.ctx.restore();
-        } else {
+            // 渲染玩家名
+            this.ctx.restore(); // 恢复canvas状态
+            this.ctx.font = 'bold 16px 微软雅黑';
+            this.ctx.fillStyle = "white";
+            this.ctx.fillText(this.username, ctx_x * scale, ctx_y * scale - this.radius * 1.4 * scale);
+            // 渲染血条
+            // let start_angle = -(1 - this.hp / this.max_hp) * Math.PI;
+            // this.ctx.beginPath();
+            // this.ctx.arc(x, y, this.radius * 1.1 * scale, start_angle, -Math.PI, true);
+            // this.ctx.lineTo(x - this.radius * 1.3 * scale, y);
+            // this.ctx.arc(x, y, this.radius * 1.3 * scale, Math.PI, Math.PI * 2 + start_angle, false);
+            // this.ctx.fillStyle = color;
+            // this.ctx.fill();
+        } else { // 渲染机器人
             this.ctx.beginPath();
             this.ctx.arc(ctx_x * scale, ctx_y * scale, this.radius * scale, 0, Math.PI * 2, false);
             this.ctx.fillStyle = this.color;

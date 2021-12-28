@@ -42,7 +42,7 @@ class MultiPlayer(AsyncWebsocketConsumer):
         # Connect!
         transport.open()
         # 添加玩家到匹配系统
-        client.add_player(player.score, data['uuid'], data['username'], data['photo'], self.channel_name)
+        client.add_player(player.score, data['uuid'], data['username'], data['photo'], data['px'], data['py'], self.channel_name)
         # Close!
         transport.close()
 
@@ -106,7 +106,7 @@ class MultiPlayer(AsyncWebsocketConsumer):
 
         for player in players:
             if player['uuid'] == data['attackee_uuid']:  # 匹配被攻击者uuid
-                player['hp'] -= 25
+                player['hp'] -= 10
 
         remain_cnt = 0  # 剩余玩家数量
         for player in players:
@@ -187,8 +187,8 @@ class MultiPlayer(AsyncWebsocketConsumer):
         event = data['event']
         if event == 'create_player':
             await self.create_player(data)
-        elif event == 'remove_player':
-            await self.remove_player(data)
+        # elif event == 'remove_player':
+        #     await self.remove_player(data)
         elif event == 'move_to':
             await self.move_to(data)
         elif event == 'shoot_fireball':

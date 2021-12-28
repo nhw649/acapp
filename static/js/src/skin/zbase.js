@@ -67,10 +67,10 @@ class Skin {
 
         let outer = this;
         this.$img.click(function () { // 点击皮肤事件
-            if ($(this).index() === 0) {
+            if ($(this).parent().index() === 0) {
                 outer.img_src = outer.img_list[Math.floor(Math.random() * outer.img_list.length)]; // 获取图片地址
             } else {
-                outer.img_src = $(this).attr("src"); // 获取图片地址
+                outer.img_src = $(this)[0].currentSrc; // 获取图片地址
             }
             outer.hide();
             outer.root.playground.show(); // 显示游戏场景

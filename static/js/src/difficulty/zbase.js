@@ -1,4 +1,4 @@
-class Difficulty {
+class Difficult {
     constructor(root) {
         this.root = root;
         this.$difficulty = $(`
@@ -7,7 +7,7 @@ class Difficulty {
         <div class="difficulty-field-item difficulty-field-item-easy">简单</div>
         <br>
         <br>
-        <div class="difficulty-field-item difficulty-field-item-middle">中等</div>
+        <div class="difficulty-field-item difficulty-field-item-normal">普通</div>
         <br>
         <br>
         <div class="difficulty-field-item difficulty-field-item-hard">困难</div>
@@ -16,7 +16,7 @@ class Difficulty {
         `);
         this.root.$ac_game.append(this.$difficulty);
         this.$easy = $(".difficulty-field-item-easy");
-        this.$middle = $(".difficulty-field-item-middle");
+        this.$normal = $(".difficulty-field-item-normal");
         this.$hard = $(".difficulty-field-item-hard");
         this.start();
         this.hide();
@@ -34,9 +34,9 @@ class Difficulty {
             this.root.skin.show();
         });
 
-        this.$middle.click(() => {
-            // 中等难度
-            this.difficulty_mode = "middle";
+        this.$normal.click(() => {
+            // 普通难度
+            this.difficulty_mode = "normal";
             this.hide();
             this.root.skin.show();
         });

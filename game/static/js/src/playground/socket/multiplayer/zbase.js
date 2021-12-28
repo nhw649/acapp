@@ -30,7 +30,7 @@ class MultiPlayerSocket {
             }
             // 路由
             if (event === "create_player") {
-                this.receive_create_player(uuid, data.username, data.photo);
+                this.receive_create_player(uuid, data.username, data.photo, data.px, data.py);
             } else if (event === "move_to") {
                 this.receive_move_to(uuid, data.tx, data.ty);
             } else if (event === "shoot_fireball") {
@@ -45,30 +45,32 @@ class MultiPlayerSocket {
         })
     }
 
-    send_create_player(username, photo) { // 向服务器发送创建玩家消息
+    send_create_player(username, photo, px, py) { // 向服务器发送创建玩家消息
         let outer = this;
         this.ws.send(JSON.stringify({
             'event': 'create_player',
             'uuid': outer.uuid,
             'username': username,
-            'photo': photo
+            'photo': photo,
+            'px': px,
+            'py': py
         }))
     }
 
-    receive_create_player(uuid, username, photo) { // 处理创建玩家消息
+    receive_create_player(uuid, username, photo, px, py) { // 处理创建玩家消息
         // 创建敌人
-        let player = new Player(this.playground, this.playground.width / 2 / this.playground.scale, 0.5, 0.05, "white", 0.2, "enemy", username, photo);
+        let player = new Player(this.playground, px, py, 0.04, "white", 0.2, "enemy", username, photo);
         player.uuid = uuid; // 统一不同窗口同一玩家的uid
         this.playground.players.push(player);
     }
 
     // send_remove_player(username) { // 向服务器发送删除玩家消息
-        // let outer = this;
-        // this.ws.send(JSON.stringify({
-        //     'event': 'remove_player',
-        //     'uuid': outer.uuid,
-        //     'username': username,
-        // }))
+    // let outer = this;
+    // this.ws.send(JSON.stringify({
+    //     'event': 'remove_player',
+    //     'uuid': outer.uuid,
+    //     'username': username,
+    // }))
     // }
 
     send_move_to(tx, ty) { // 向服务器发送玩家移动消息

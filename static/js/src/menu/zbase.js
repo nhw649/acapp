@@ -35,7 +35,7 @@ class AcGameMenu {
         this.$single.click(() => {
             this.hide();
             this.mode = "single mode";
-            this.root.difficulty.show(); // 显示难度界面
+            this.root.difficult.show(); // 显示难度界面
             // this.root.playground.show("single mode"); // 显示单人模式游戏场景
         });
 
