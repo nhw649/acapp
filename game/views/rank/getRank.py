@@ -1,5 +1,4 @@
 from django.http import JsonResponse
-from django.core import serializers
 from django.core.paginator import Paginator, PageNotAnInteger, InvalidPage
 from game.models.player.player import Player
 

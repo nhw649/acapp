@@ -48,6 +48,24 @@ canvas {
     transition: all 0.2s;
 }
 
+.ac-game-menu-message-board {
+    padding: 20px;
+    width: 50%;
+    height: 70%;
+    position: absolute;
+    right: 5%;
+    top: 15%;
+    background-color: rgba(255, 255, 255, 0.4);
+}
+
+.ac-game-menu-message-board .message-board-content-box {
+    width: 100%;
+    height: 90%;
+    overflow-y: scroll;
+    word-wrap: break-word;
+    background-color: rgba(255, 255, 255, 0.7);
+}
+
 .ac-game-setting-description, .ac-game-difficult-description {
     padding: 20px;
     width: 50%;

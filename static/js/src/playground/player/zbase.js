@@ -198,6 +198,7 @@ class Player extends AcGameObject {
         // let move_length = 1.3; // 火球移动距离
         // 创建火球
         let fireball = new FireBall(this.playground, this, x, y, radius, vx, vy, color, this.fireball_speed, this.fireball_move_length, 0.0025);
+        this.fireballs.push(fireball);
         this.fireball_coldtime = 1; // 重置火球cd
         return fireball; // 便于获取火球的uuid
     }
@@ -206,6 +207,7 @@ class Player extends AcGameObject {
         for (let i = 0; i < this.fireballs.length; i++) {
             let fireball = this.fireballs[i];
             if (fireball.uuid === uuid) {
+                console.log(1)
                 fireball.destroy();
                 break;
             }
@@ -231,6 +233,7 @@ class Player extends AcGameObject {
     }
 
     receive_attack(x, y, angle, damage, fireball_uuid, attacker) { // 收到攻击
+        console.log(attacker, fireball_uuid);
         attacker.destroy_fireball(fireball_uuid); // 删除攻击者发出的火球
         this.x = x;
         this.y = y;
