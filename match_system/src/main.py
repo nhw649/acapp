@@ -69,7 +69,7 @@ class Pool:
                 'photo': p.photo,
                 'px': p.px,
                 'py': p.py,
-                # 'hp': 100  # 血量
+                'hp': 100  # 血量
             })
         cache.set(room_name, players, 3600)  # 加入redis
         # 广播

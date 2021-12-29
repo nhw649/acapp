@@ -26,11 +26,13 @@ class Player extends AcGameObject {
         this.fireball_speed = 0.7; // 火球移动速度
         this.fireball_move_length = 1.4; // 火球移动距离
 
-        if (this.character !== "robot") { // 不是机器人才拥有头像
-            // 创建头像图片
-            this.img = new Image();
-            this.img.src = this.photo;
-        }
+        this.max_hp = 100; // 最大血量
+        this.hp = 100;
+
+        // 创建图片渲染头像皮肤
+        this.img = new Image();
+        this.img.src = this.photo || "https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fae01.alicdn.com%2Fkf%2FH544f69316f7941e0aa8e16ddb0957367F.jpg&refer=http%3A%2F%2Fae01.alicdn.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1643330881&t=6141465282424729b082d7b3f5e29b89";
+
         if (this.character === "me") { // 是自己才有冷却时间
             this.fireball_coldtime = 1; // 火球冷却时间
             this.blink_coldtime = 3; // 闪现冷却时间
@@ -164,7 +166,7 @@ class Player extends AcGameObject {
             if (this.playground.state !== "fighting")
                 return true; // 匹配中不能发射火球
             // 技能按键
-            if (e.which === 81 && this.radius >= this.eps) {
+            if (e.which === 81 && this.hp > 0) {
                 if (this.fireball_coldtime > 0)
                     return true; // 火球技能冷却中
                 this.cur_skill = "fireball";
@@ -195,7 +197,7 @@ class Player extends AcGameObject {
         let vy = Math.sin(angle);
         // let move_length = 1.3; // 火球移动距离
         // 创建火球
-        let fireball = new FireBall(this.playground, this, x, y, radius, vx, vy, color, this.fireball_speed, this.fireball_move_length, 0.004);
+        let fireball = new FireBall(this.playground, this, x, y, radius, vx, vy, color, this.fireball_speed, this.fireball_move_length, 0.0025);
         this.fireball_coldtime = 1; // 重置火球cd
         return fireball; // 便于获取火球的uuid
     }
@@ -249,16 +251,17 @@ class Player extends AcGameObject {
             let move_length = this.radius * Math.random() * 3.5;
             new Particle(this.playground, x, y, radius, color, vx, vy, speed, move_length);
         }
-        this.radius -= damage; // 玩家血量(半径)减少
-        if (this.radius < this.eps) {
+        this.radius -= damage * 0.5; // 玩家变小
+        this.hp -= 10; // 血量减少
+        if (this.hp <= 0) {
             this.destroy(); // 玩家死亡
             return false;
         }
         // 击退效果
         this.damage_x = Math.cos(angle);
         this.damage_y = Math.sin(angle);
-        this.damage_speed = damage * 200;
-        this.speed *= 0.9; // 血量减少移速变慢
+        this.damage_speed = damage * 350;
+        this.speed *= 0.98; // 血量减少移速变慢
     }
 
     get_dist(x1, y1, x2, y2) { // 获取两点距离
@@ -391,8 +394,44 @@ class Player extends AcGameObject {
         this.render_skill_mask(scale, x, y, r, this.blink_coldtime, 3);
     }
 
+    render_hp(x, y, r, scale, color) {
+        let base_top_y = this.radius * 1.5 * scale; // 血条上边框
+        let base_bottom_y = this.radius * 1.2 * scale; // 血条下边框
+        let base_x = this.radius * 1.2 * scale; // 血条左右边框
+
+        // 边框
+        this.ctx.strokeStyle = "white";
+        this.ctx.beginPath();
+        this.ctx.moveTo(x - base_x, y - base_top_y);
+        this.ctx.lineTo(x + base_x, y - base_top_y);
+        this.ctx.lineTo(x + base_x, y - base_bottom_y);
+        this.ctx.lineTo(x - base_x, y - base_bottom_y);
+        this.ctx.lineTo(x - base_x, y - base_top_y);
+        this.ctx.stroke();
+
+        // 剩余血量
+        let ratio = this.hp / this.max_hp;
+        this.ctx.beginPath()
+        this.ctx.rect(x - base_x, y - base_top_y, 2 * base_x * ratio, this.radius * 0.3 * scale);
+        this.ctx.fillStyle = color;
+        this.ctx.fill();
+        this.ctx.closePath();
+
+        // 已扣血量
+        this.ctx.beginPath()
+        this.ctx.rect(x + base_x, y - base_top_y, -((x + base_x) * ratio), this.radius * 0.3 * scale);
+        this.ctx.fillStyle = 'rgba(0,0,0,0)';
+        this.ctx.fill();
+        this.ctx.closePath();
+
+        // 血量值
+        this.ctx.font = 0.015 * scale + "px bold 微软雅黑";
+        this.ctx.fillStyle = "white";
+        this.ctx.textBaseline = "top";
+        this.ctx.fillText(this.hp + "/100", x, y - base_top_y);
+    }
+
     render() {
-        // 渲染头像
         let scale = this.playground.scale;
         let ctx_x = this.x - this.playground.cx, ctx_y = this.y - this.playground.cy; // 把虚拟地图中的坐标换算成canvas中的坐标
         if (ctx_x < -0.2 * this.playground.width / scale ||
@@ -403,34 +442,33 @@ class Player extends AcGameObject {
                 return;
             }
         }
-        if (this.character !== "robot") { // 不是机器人才渲染
-            // 渲染头像
-            this.ctx.save();
-            this.ctx.strokeStyle = this.color; // 填充边框颜色
-            this.ctx.beginPath();
-            this.ctx.arc(ctx_x * scale, ctx_y * scale, this.radius * scale, 0, Math.PI * 2, false);
-            this.ctx.stroke();
-            this.ctx.clip();
-            this.ctx.drawImage(this.img, (ctx_x - this.radius) * scale, (ctx_y - this.radius) * scale, this.radius * 2 * scale, this.radius * 2 * scale);
-            // 渲染玩家名
-            this.ctx.restore(); // 恢复canvas状态
-            this.ctx.font = 'bold 16px 微软雅黑';
-            this.ctx.fillStyle = "white";
-            this.ctx.fillText(this.username, ctx_x * scale, ctx_y * scale - this.radius * 1.4 * scale);
-            // 渲染血条
-            // let start_angle = -(1 - this.hp / this.max_hp) * Math.PI;
-            // this.ctx.beginPath();
-            // this.ctx.arc(x, y, this.radius * 1.1 * scale, start_angle, -Math.PI, true);
-            // this.ctx.lineTo(x - this.radius * 1.3 * scale, y);
-            // this.ctx.arc(x, y, this.radius * 1.3 * scale, Math.PI, Math.PI * 2 + start_angle, false);
-            // this.ctx.fillStyle = color;
-            // this.ctx.fill();
-        } else { // 渲染机器人
-            this.ctx.beginPath();
-            this.ctx.arc(ctx_x * scale, ctx_y * scale, this.radius * scale, 0, Math.PI * 2, false);
-            this.ctx.fillStyle = this.color;
-            this.ctx.fill();
+
+        // 渲染血条
+        if (this.character === "me") {
+            this.render_hp(ctx_x * scale, ctx_y * scale, this.radius * scale, scale, "rgb(51, 226, 40)");
+        } else {
+            this.render_hp(ctx_x * scale, ctx_y * scale, this.radius * scale, scale, "rgb(249, 19, 51)");
         }
+
+        // 渲染玩家或机器人
+        this.ctx.save(); // 保存canvas状态
+        this.ctx.strokeStyle = this.color; // 填充边框颜色
+        this.ctx.beginPath();
+        this.ctx.arc(ctx_x * scale, ctx_y * scale, this.radius * scale, 0, Math.PI * 2, false);
+        this.ctx.stroke();
+        this.ctx.clip();
+        this.ctx.drawImage(this.img, (ctx_x - this.radius) * scale, (ctx_y - this.radius) * scale, this.radius * 2 * scale, this.radius * 2 * scale);
+        this.ctx.restore(); // 恢复canvas状态
+
+        // 渲染玩家名
+        if (this.character !== "robot") {
+            this.ctx.beginPath();
+            this.ctx.font = 0.02 * scale + "px bold 微软雅黑";
+            this.ctx.fillStyle = "white";
+            this.ctx.textBaseline = "alphabetic";
+            this.ctx.fillText(this.username, ctx_x * scale, ctx_y * scale - this.radius * 1.8 * scale);
+        }
+
         // 渲染技能
         if (this.character === "me" && this.playground.state === "fighting") {
             this.render_skill_coldtime();

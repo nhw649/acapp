@@ -59,7 +59,7 @@ class MultiPlayerSocket {
 
     receive_create_player(uuid, username, photo, px, py) { // 处理创建玩家消息
         // 创建敌人
-        let player = new Player(this.playground, px, py, 0.04, "white", 0.2, "enemy", username, photo);
+        let player = new Player(this.playground, px, py, 0.045, "rgb(203,11,10)", 0.25, "enemy", username, photo);
         player.uuid = uuid; // 统一不同窗口同一玩家的uid
         this.playground.players.push(player);
     }
