@@ -16,6 +16,10 @@ class ChatField {
     }
 
     add_listening_events() {
+        this.$history.on("contextmenu", function () { // 阻止右键菜单
+            return false;
+        });
+
         this.$input.keydown((e) => {
             if (e.which === 27) { // ESC键关闭聊天框
                 this.hide_input();

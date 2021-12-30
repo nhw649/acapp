@@ -27,7 +27,7 @@ def userRegister(request):
     # user.set_password(password)  # 加密,生成哈希串
     # user.save()
     user = User.objects.create_user(username=username, password=password)
-    user.save
+    user.save()
     Player.objects.create(
         user=user,
         photo="https://img2.baidu.com/it/u=304846655,1860504905&fm=26&fmt=auto"

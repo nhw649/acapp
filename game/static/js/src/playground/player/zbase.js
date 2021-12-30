@@ -207,7 +207,6 @@ class Player extends AcGameObject {
         for (let i = 0; i < this.fireballs.length; i++) {
             let fireball = this.fireballs[i];
             if (fireball.uuid === uuid) {
-                console.log(1)
                 fireball.destroy();
                 break;
             }
@@ -233,7 +232,6 @@ class Player extends AcGameObject {
     }
 
     receive_attack(x, y, angle, damage, fireball_uuid, attacker) { // 收到攻击
-        console.log(attacker, fireball_uuid);
         attacker.destroy_fireball(fireball_uuid); // 删除攻击者发出的火球
         this.x = x;
         this.y = y;
@@ -351,6 +349,7 @@ class Player extends AcGameObject {
         for (let i = 0; i < this.playground.players.length; i++) { // 玩家死亡从玩家列表中删除
             if (this.playground.players[i] === this) {
                 this.playground.players.splice(i, 1);
+                this.playground.player_count--;
                 break;
             }
         }

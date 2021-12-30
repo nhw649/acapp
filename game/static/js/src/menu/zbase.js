@@ -15,24 +15,47 @@ class AcGameMenu {
         <br>
         <div class="menu-field-item menu-field-item-settings">设置</div>
     </div>
-    <div class="ac-game-menu-message-board">
-       <div class="message-board-content-box">
-           <ul class="list-unstyled message-board-content">
-              <li class="media">
-                <img src="" class="mr-3">
-                <div class="media-body">
-                  <h5 class="mt-0 mb-1">List-based media object</h5>
-                  <p>Are you brave enough to let me see your peacock? There’s no going back. This is the last time you say, after the last line you break. At the eh-end of it all.</p>
+    <div class="ac-game-menu-collapse">
+        <button class="btn btn-info w-100 collapse-button font-weight-bold" data-toggle="collapse" data-target="#collapseMessage">
+            留言板
+        </button>
+        <div class="collapse" id="collapseMessage">
+            <div class="ac-game-menu-message-board">
+                <div class="message-board-content-box">
+                   <ul class="list-unstyled message-board-content"></ul>
                 </div>
-              </li>
-           </ul>
+                <div class="input-group mt-3">
+                  <input type="text" class="form-control message-board-input" placeholder="请输入你想说的内容...">
+                  <div class="input-group-append">
+                    <button class="btn btn-outline-info" id="liveToastBtn">发送</button>
+                  </div>
+               </div>
+            </div>
         </div>
-       <div class="input-group mt-3">
-          <input type="text" class="form-control message-board-input" placeholder="请输入你想说的内容...">
-          <div class="input-group-append">
-            <button class="btn btn-outline-primary">发送</button>
-          </div>
-       </div>
+    </div>
+    <div class="toast ac-game-menu-success-toast" style="position: absolute; bottom: 5px; right: 0px;">
+        <div class="toast-header">
+          <strong class="mr-4 text-success">成功</strong>
+          <small>1s前</small>
+          <button class="ml-2 mb-1 close" data-dismiss="toast">
+            <span>&times;</span>
+          </button>
+        </div>
+        <div class="toast-body">
+          发送成功!
+        </div>
+    </div>
+    <div class="toast ac-game-menu-error-toast" style="position: absolute; bottom: 5px; right: 0px;">
+        <div class="toast-header">
+          <strong class="mr-auto text-danger">错误</strong>
+          <small>1s前</small>
+          <button class="ml-2 mb-1 close" data-dismiss="toast">
+            <span>&times;</span>
+          </button>
+        </div>
+        <div class="toast-body">
+          输入的内容不能为空!
+        </div>
     </div>
 </div>
 `);
@@ -46,6 +69,8 @@ class AcGameMenu {
         this.$message_board_content = this.$menu.find(".message-board-content");
         this.$message_board_input = this.$menu.find(".message-board-input");
         this.$message_board_button = this.$menu.find(".ac-game-menu-message-board button");
+        this.$error_toast = this.$menu.find(".ac-game-menu-error-toast");
+        this.$success_toast = this.$menu.find(".ac-game-menu-success-toast");
 
         this.hide(); // 用户登录后才显示
         this.start();
@@ -62,7 +87,6 @@ class AcGameMenu {
             this.$message_board.hide();
             this.mode = "single mode";
             this.root.difficult.show(); // 显示难度界面
-            // this.root.playground.show("single mode"); // 显示单人模式游戏场景
         });
 
         this.$multi.click(() => {
@@ -70,7 +94,6 @@ class AcGameMenu {
             this.$message_board.hide();
             this.mode = "multi mode";
             this.root.skin.show(); // 显示皮肤界面
-            // this.root.playground.show("multi mode"); // 显示多人模式游戏场景
         });
 
         this.$rank.click(() => {
@@ -85,48 +108,94 @@ class AcGameMenu {
             this.root.setting.show(); // 显示设置
         });
 
+        this.$menu.keydown((e) => {
+            if (this.$message_board_input.is(":focus") && e.which === 13) { // 回车事件
+                this.addMessage();
+                this.$message_board_input.val("");
+                this.getMessage();
+            }
+        })
+
         this.$message_board_button.click(() => {
+            this.addMessage();
+            this.$message_board_input.val("");
             this.getMessage();
+        });
+    }
+
+    addMessage() {
+        let value = this.$message_board_input.val();
+        if (!value) {
+            // 显示错误弹框
+            this.$error_toast.toast({
+                delay: 2000,
+            });
+            this.$error_toast.toast("show");
+            return false;
+        }
+        let outer = this;
+        $.ajax({
+            url: "/menu/addMessage/",
+            type: "POST",
+            async: false, // 使用同步的方式
+            data: {
+                "username": outer.root.settings.username,
+                "photo": outer.root.settings.photo,
+                "text": value,
+                "csrfmiddlewaretoken": $('input[name="csrfmiddlewaretoken"]').val(), // csrf认证(post需要)
+            },
+            success: (res) => {
+                // 显示成功弹框
+                if (res.result === "success") {
+                    this.$success_toast.toast({
+                        delay: 2000,
+                    });
+                    this.$success_toast.toast("show");
+                } else {
+                    this.$success_toast.toast({
+                        delay: 2000,
+                    });
+                    this.$success_toast.toast("show");
+                }
+            }
         });
     }
 
     getMessage() {
         let outer = this;
         $.ajax({
-            url: "/menu/getMessage",
+            url: "/menu/getMessage/",
             type: "GET",
+            async: false, // 使用同步的方式
             success: (res) => {
-                console.log(res)
                 this.$message_board_content.html("");
-                // for (let i = 0; i <; i++) {
-                //     let message = $(`
-                //     <li class="media">
-                //         <img src="" class="mr-3">
-                //         <div class="media-body">
-                //           <h5 class="mt-0 mb-1">List-based media object</h5>
-                //           <p>Are you brave enough to let me see your peacock? There’s no going back. This is the last time you say, after the last line you break. At the eh-end of it all.</p>
-                //         </div>
-                //     </li>
-                //     `)
-                //     this.$message_board_content.append(message);
-                // }
+                let data = res.data;
+                for (let i = 0; i < data.length; i++) {
+                    let message = $(`
+                    <hr>
+                    <li class="media mt-2 pl-3 pr-3">
+                        <img src="${data[i].photo}" width="40" class="rounded mr-3">
+                        <div class="media-body">
+                          <h5 class="mt-0 mb-0">${data[i].username}</h5>
+                          <p class="create-time mb-2 text-secondary">${data[i].create_time}</p>
+                          <p class="mb-0">${data[i].text}</p>
+                        </div>
+                    </li>
+                    `)
+                    this.$message_board_content.append(message);
+                }
+                // 滚动到留言板底部
+                this.$message_board_content_box[0].scrollTop = this.$message_board_content_box[0].scrollHeight;
             }
         })
     }
 
     show() {
-        this.$menu.show();
+        this.$menu.show(); // 显示菜单
         this.getMessage(); // 获取留言板数据
-        this.$message_board.show();
-        // 滚动到留言板底部
-        this.$message_board_content_box[0].scrollTop = this.$message_board_content_box[0].scrollHeight;
-        // 美化滚动条插件
-        this.$message_board_content_box.niceScroll({
-            cursorcolor: "#abc4ff", // 滚动条颜色，使用16进制颜色值
-            cursoropacitymin: 0.3, // 当滚动条是隐藏状态时改变透明度
-            cursorborder: "none", // CSS方式定义滚动条边框
-            cursorborderradius: "10px", // 滚动条圆角
-        });
+
+        this.$message_board.show(); // 显示留言板
+
         if (this.init_audio === "first") { // 第一次进入菜单则播放音乐
             $("audio")[0].play();
             this.init_audio = null;

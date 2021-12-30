@@ -5,8 +5,8 @@
 html, body {
     width: 100%;
     height: 100%;
-    /*background-image: url("https://django-project.oss-cn-shanghai.aliyuncs.com/background/201112111638-5.jpg");*/
-    /*background-size: 100% 100%;*/
+    background-image: url("https://django-project.oss-cn-shanghai.aliyuncs.com/background/201112111638-5.jpg");
+    background-size: 100% 100%;
     background-color: mediumpurple;
 }
 
@@ -48,14 +48,26 @@ canvas {
     transition: all 0.2s;
 }
 
+.ac-game-menu-collapse {
+    width: 50%;
+    height: 80%;
+    position: absolute;
+    top: 0;
+    right: 100px;
+}
+
+.ac-game-menu-collapse .collapse {
+    width: 100%;
+    height: 100%;
+}
+
 .ac-game-menu-message-board {
     padding: 20px;
-    width: 50%;
-    height: 70%;
-    position: absolute;
-    right: 5%;
-    top: 15%;
+    width: 100%;
+    height: 100%;
     background-color: rgba(255, 255, 255, 0.4);
+    border-bottom-right-radius: 20px;
+    border-bottom-left-radius: 20px
 }
 
 .ac-game-menu-message-board .message-board-content-box {
@@ -64,6 +76,44 @@ canvas {
     overflow-y: scroll;
     word-wrap: break-word;
     background-color: rgba(255, 255, 255, 0.7);
+    user-select: text;
+}
+
+.ac-game-menu-message-board .message-board-content-box::-webkit-scrollbar {
+    /*滚动条整体样式*/
+    width: 8px;
+    /*background-color: rgba(255, 255, 255, 0.7);*/
+}
+
+.ac-game-menu-message-board .message-board-content-box::-webkit-scrollbar-thumb {
+    /*滚动条里面小方块*/
+    border-radius: 20px;
+    background-color: rgba(232, 135, 235, 0.5);
+    background-image: -webkit-linear-gradient(
+            45deg,
+            rgba(255, 255, 255, 0.2) 25%,
+            transparent 25%,
+            transparent 50%,
+            rgba(255, 255, 255, 0.2) 50%,
+            rgba(255, 255, 255, 0.2) 75%,
+            transparent 75%,
+            transparent
+    );
+}
+
+.ac-game-menu-message-board .message-board-content-box::-webkit-scrollbar-track {
+    /*滚动条里面轨道*/
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+    background: #ededed;
+    border-radius: 10px;
+}
+
+.message-board-content-box .message-board-content h5 {
+    font-size: 17px;
+}
+
+.message-board-content-box .message-board-content .create-time {
+    font-size: 13px;
 }
 
 .ac-game-setting-description, .ac-game-difficult-description {
@@ -138,10 +188,6 @@ canvas {
     left: 50%;
     transform: translateX(-50%);
     color: #333333;
-}
-
-.ac-game-skin .carousel-caption p {
-    font-size: ;
 }
 
 .ac-game-skin .carousel-indicators {
