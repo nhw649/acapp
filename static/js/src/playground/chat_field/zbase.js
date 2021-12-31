@@ -21,10 +21,10 @@ class ChatField {
         });
 
         this.$input.keydown((e) => {
-            if (e.which === 27) { // ESC键关闭聊天框
+            if (e.which === 27 && this.$input.is(":focus")) { // ESC键关闭聊天框
                 this.hide_input();
                 return false;
-            } else if (e.which === 13 && this.$input.val() && $('.chat-field-input').is(":focus")) { // 回车发送消息事件
+            } else if (e.which === 13 && this.$input.val() && this.$input.is(":focus")) { // 回车发送消息事件
                 let username = this.playground.root.settings.username;
                 let text = this.$input.val();
                 if (text) { // 内容不为空
@@ -33,7 +33,7 @@ class ChatField {
                     this.playground.mps.send_chat_message(username, text); // 向服务器发送聊天信息
                 }
                 return false;
-            } else if (e.which === 13 && this.$input.val() === "" && $('.chat-field-input').is(":focus")) { // 输入框为空回车也可以关闭聊天框
+            } else if (e.which === 13 && this.$input.val() === "" && this.$input.is(":focus")) { // 输入框为空回车也可以关闭聊天框
                 this.hide_input();
                 return false;
             }

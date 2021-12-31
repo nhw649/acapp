@@ -126,6 +126,7 @@ class Player extends AcGameObject {
                 if (this.playground.mode === "multi mode") {
                     this.playground.mps.send_move_to(tx, ty) // 向服务器发送玩家移动消息
                 }
+                // 移动时使用闪现技能
                 if (this.cur_skill === "blink") { // 闪现技能
                     if (this.blink_coldtime > 0) // 判断闪现cd
                         return false;
@@ -134,7 +135,6 @@ class Player extends AcGameObject {
                         this.playground.mps.send_blink(tx, ty);
                     }
                 }
-                this.cur_skill = null; // 清空技能
             } else if (e.which === 1) { // 左键发射技能
                 // let tx = (e.clientX - rect.left) / this.playground.scale;
                 // let ty = (e.clientY - rect.top) / this.playground.scale;
@@ -146,19 +146,20 @@ class Player extends AcGameObject {
                         this.playground.mps.send_shoot_fireball(tx, ty, fireball.uuid); // 向服务器发送发射火球消息
                     }
                 }
-                this.cur_skill = null; // 清空技能
             }
+            this.cur_skill = null; // 清空技能
         })
+
         this.playground.game_map.$canvas.keydown((e) => { // 绑定到canvas上,不会触发其他窗口的键盘事件
             // 聊天框按键
             if (e.which === 13) // 监听回车事件
             {
-                if (this.playground.mode === "multi mode" && this.playground.state === "fighting") { // 打开聊天框
+                if (this.playground.mode === "multi mode" && this.playground.state !== "waiting") { // 打开聊天框
                     this.playground.chat_field.show_input();
                     return false;
                 }
             } else if (e.which === 27) {
-                if (this.playground.mode === "multi mode" && this.playground.state === "fighting") { // 关闭聊天框
+                if (this.playground.mode === "multi mode" && this.playground.state !== "waiting") { // 关闭聊天框
                     this.playground.chat_field.hide_input();
                     return false;
                 }
@@ -287,8 +288,13 @@ class Player extends AcGameObject {
     update_win() { // 判断胜利事件
         if (this.playground.state === "fighting" && this.character === "me" && this.playground.players.length === 1) {
             this.playground.state = "over";
+            this.playground.notice_board.write("胜利!");
             this.playground.score_board.win();
         }
+    }
+
+    update_remain_player() { // 更新剩余玩家人数
+        this.playground.notice_board.write("战斗中,剩余玩家:");
     }
 
     update_coldtime() { // 更新技能冷却时间
@@ -344,6 +350,7 @@ class Player extends AcGameObject {
     on_destroy() {
         if (this.character === "me" && this.playground.state === "fighting") { // 判断失败
             this.playground.state = "over";
+            this.playground.notice_board.write("观战中...");
             this.playground.score_board.lose();
         }
         for (let i = 0; i < this.playground.players.length; i++) { // 玩家死亡从玩家列表中删除

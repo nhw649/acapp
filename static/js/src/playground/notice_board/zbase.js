@@ -23,7 +23,7 @@ class NoticeBoard extends AcGameObject {
     }
 
     render() {
-        this.ctx.font = "20px serif";
+        this.ctx.font = "20px arial";
         this.ctx.fillStyle = "white";
         this.ctx.textAlign = "center";
         this.ctx.fillText(this.text, this.playground.width / 2, 20); // 后两个参数是提示板位置
