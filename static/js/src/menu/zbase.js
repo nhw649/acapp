@@ -71,6 +71,7 @@ class AcGameMenu {
         this.$message_board_button = this.$menu.find(".ac-game-menu-message-board button");
         this.$error_toast = this.$menu.find(".ac-game-menu-error-toast");
         this.$success_toast = this.$menu.find(".ac-game-menu-success-toast");
+        this.$collapse_message = this.$menu.find("#collapseMessage");
 
         this.hide(); // 用户登录后才显示
         this.start();
@@ -82,6 +83,10 @@ class AcGameMenu {
     }
 
     add_listening_events() {
+        this.$collapse_message.on('shown.bs.collapse', () => { // 折叠元素对用户可见时触发
+            this.$message_board_content_box[0].scrollTop = this.$message_board_content_box[0].scrollHeight; // 滚动条移动到底部
+        })
+
         this.$single.click(() => {
             this.hide();
             this.$message_board.hide();
@@ -184,8 +189,7 @@ class AcGameMenu {
                     `)
                     this.$message_board_content.append(message);
                 }
-                // 滚动到留言板底部
-                this.$message_board_content_box[0].scrollTop = this.$message_board_content_box[0].scrollHeight;
+                this.$message_board_content_box[0].scrollTop = this.$message_board_content_box[0].scrollHeight; // 滚动条移动到底部
             }
         })
     }
