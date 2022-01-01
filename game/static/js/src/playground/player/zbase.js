@@ -46,68 +46,65 @@ class Player extends AcGameObject {
     }
 
     start() {
-        // 单人模式的难度调整
+        this.adjust_skill();
+        this.playground.player_count++; // 玩家人数+1
+        // this.playground.notice_board.write("已准备:" + this.playground.player_count + "人"); // 修改提示板文字
+
+        if (this.playground.player_count >= 3) {
+            this.playground.state = "fighting";
+        }
+
+        if (this.character === "me") { // 是自己才添加鼠标点击移动事件
+            this.add_listening_events();
+        } else if (this.character === "robot") { // 机器人
+            this.random_position_timerId = setInterval(() => {
+                // 5s创建一次随机移动位置
+                // let tx = Math.random() * this.playground.width / this.playground.scale;
+                // let ty = Math.random() * this.playground.height / this.playground.scale;
+                this.update_robot_move();
+            }, 5000);
+        }
+    }
+
+    adjust_skill() { // 单人模式不同难度的技能调整
         if (this.playground.mode === "single mode") {
             this.difficult_mode = this.playground.root.difficult.difficult_mode;
             if (this.character === "me") {
                 if (this.difficult_mode === "easy") {
                     this.fireball_speed = 0.7; // 火球移动速度
                     this.fireball_move_length = 1.3; // 火球移动距离
-                    this.attack_frequency = 1 / 100; // 攻击频率
                 } else if (this.difficult_mode === "normal") {
                     this.fireball_speed = 0.7; // 火球移动速度
                     this.fireball_move_length = 1.4; // 火球移动距离
-                    this.attack_frequency = 1 / 200; // 攻击频率
                 } else if (this.difficult_mode === "hard") {
-                    this.fireball_speed = 0.7; // 火球移动速度
-                    this.fireball_move_length = 1.5; // 火球移动距离
-                    this.attack_frequency = 1 / 300; // 攻击频率
+                    this.fireball_speed = 0.8; // 火球移动速度
+                    this.fireball_move_length = 1.4; // 火球移动距离
                 }
             } else if (this.character === "robot") {
                 if (this.difficult_mode === "easy") {
                     this.fireball_speed = 0.6; // 火球移动速度
                     this.fireball_move_length = 1.3; // 火球移动距离
-                    this.attack_frequency = 1 / 100; // 攻击频率
+                    this.attack_frequency = 1 / 800; // 攻击频率
                 } else if (this.difficult_mode === "normal") {
                     this.fireball_speed = 0.7; // 火球移动速度
                     this.fireball_move_length = 1.4; // 火球移动距离
-                    this.attack_frequency = 1 / 200; // 攻击频率
+                    this.attack_frequency = 1 / 400; // 攻击频率
                 } else if (this.difficult_mode === "hard") {
                     this.fireball_speed = 0.8; // 火球移动速度
                     this.fireball_move_length = 1.5; // 火球移动距离
-                    this.attack_frequency = 1 / 300; // 攻击频率
+                    this.attack_frequency = 1 / 200; // 攻击频率
                 }
             }
-        }
-
-        this.playground.player_count++; // 玩家人数+1
-        // this.playground.notice_board.write("已准备：" + this.playground.player_count + "人"); // 修改提示板文字
-
-        if (this.playground.player_count >= 3) {
-            this.playground.state = "fighting";
-            this.playground.notice_board.write("战斗中！");
-        }
-        if (this.character === "me") { // 是自己才添加鼠标点击移动事件
-            this.add_listening_events();
-        } else if (this.character === "robot") { // 机器人
-            setInterval(() => {
-                // 创建随机移动位置
-                // let tx = Math.random() * this.playground.width / this.playground.scale;
-                // let ty = Math.random() * this.playground.height / this.playground.scale;
-                let tx = Math.random() * this.playground.virtual_map_width;
-                let ty = Math.random() * this.playground.virtual_map_height;
-                this.move_to(tx, ty);
-            }, 5000);
         }
     }
 
     add_listening_events() {
         this.playground.game_map.$canvas.on("contextmenu", function () {
             return false; // 防止右键出现菜单选项
-        })
+        });
         this.playground.game_map.$canvas.mousedown((e) => {
             if (this.playground.state !== "fighting")
-                return false; // 匹配中不能移动
+                return false; // 非战斗中不能移动和使用技能
 
             const rect = this.ctx.canvas.getBoundingClientRect(); // 返回元素的大小及其相对于视口的位置
             // 鼠标按下位置相对于浏览器的位置
@@ -165,7 +162,7 @@ class Player extends AcGameObject {
                 }
             }
             if (this.playground.state !== "fighting")
-                return true; // 匹配中不能发射火球
+                return true; // 非战斗中不能发射火球
             // 技能按键
             if (e.which === 81 && this.hp > 0) {
                 if (this.fireball_coldtime > 0)
@@ -221,8 +218,10 @@ class Player extends AcGameObject {
         this.x += d * Math.cos(angle);
         this.y += d * Math.sin(angle);
 
-        this.blink_coldtime = 3; // 重置闪现cd
-        this.move_length = 0; // 闪现完停止移动
+        if (this.character !== "robot") {
+            this.blink_coldtime = 3; // 重置闪现cd
+            // this.move_length = 0; // 闪现完停止移动
+        }
     }
 
     move_to(tx, ty) {
@@ -273,15 +272,16 @@ class Player extends AcGameObject {
     }
 
     update() {
-        this.spend_time += this.timedelta / 1000;
-        this.update_win(); // 触发判断胜利事件
-        this.update_move();
+        this.spend_time += this.timedelta / 1000; // 倒计时
+
+        this.update_move(); // 更新移动
+        this.update_robot_skill(); // 更新机器人技能
+        this.update_remain_player(); // 更新剩余玩家人数
+        this.update_coldtime(); // 更新技能冷却时间
+
         if (this.character === "me" && this.playground.focus_player === this)  // 如果是玩家，并且正在被聚焦，修改background的 (cx, cy)
             this.playground.re_calculate_cx_cy(this.x, this.y);
-
-        if (this.character === "me" && this.playground.state === "fighting") {
-            this.update_coldtime();
-        }
+        this.update_win(); // 触发判断胜利事件
         this.render(); // 每一帧都画一个玩家
     }
 
@@ -294,19 +294,40 @@ class Player extends AcGameObject {
     }
 
     update_remain_player() { // 更新剩余玩家人数
-        this.playground.notice_board.write("战斗中,剩余玩家:");
+        if (this.playground.state === "fighting") {
+            if (this.playground.mode === "single mode") { // 单人模式
+                this.playground.notice_board.write("战斗中!  玩家数量:" + this.playground.players.length + "/" + (this.playground.robot_total + 1));
+            } else if (this.playground.mode === "multi mode") { // 多人模式
+                this.playground.notice_board.write("战斗中!  玩家数量:" + this.playground.players.length + "/" + this.playground.player_total);
+            }
+        }
     }
 
     update_coldtime() { // 更新技能冷却时间
-        this.fireball_coldtime -= this.timedelta / 1000;
-        this.fireball_coldtime = Math.max(this.fireball_coldtime, 0); // 冷却时间最小为0
+        if (this.character === "me" && this.playground.state === "fighting") {
+            this.fireball_coldtime -= this.timedelta / 1000;
+            this.fireball_coldtime = Math.max(this.fireball_coldtime, 0); // 冷却时间最小为0
 
-        this.blink_coldtime -= this.timedelta / 1000;
-        this.blink_coldtime = Math.max(this.blink_coldtime, 0); // 冷却时间最小为0
+            this.blink_coldtime -= this.timedelta / 1000;
+            this.blink_coldtime = Math.max(this.blink_coldtime, 0); // 冷却时间最小为0
+        }
     }
 
-    update_move() { // 更新玩家移动
-        if (this.character === "robot" && this.spend_time > 4 && Math.random() < this.attack_frequency) { // 机器人自动攻击
+    update_robot_move() { // 更新机器人移动
+        let tx = Math.random() * this.playground.virtual_map_width;
+        let ty = Math.random() * this.playground.virtual_map_height;
+        this.move_to(tx, ty);
+        if (this.spend_time > 3 && Math.random() < 0.2) {
+            this.blink(tx, ty); // 机器人闪现
+            // if (this.random_position_timerId) clearInterval(this.random_position_timerId);
+            // this.random_position_timerId = setInterval(() => {
+            //     this.update_robot_move();
+            // }, 5000);
+        }
+    }
+
+    update_robot_skill() { // 更新机器人技能
+        if (this.character === "robot" && this.spend_time > 3 && Math.random() < this.attack_frequency) { // 机器人自动攻击
             let player = this.playground.players[Math.floor(Math.random() * this.playground.players.length)];
             while (player === this) { // 机器人不能攻击自己
                 player = this.playground.players[Math.floor(Math.random() * this.playground.players.length)];
@@ -318,6 +339,9 @@ class Player extends AcGameObject {
             let ty = player.y + this.vy * this.speed * this.timedelta / 1000 * 0.3;
             this.shoot_fireball(tx, ty);
         }
+    }
+
+    update_move() { // 更新玩家移动
         if (this.damage_speed > this.eps) {
             // 击退时不受控制
             this.vx = this.vy = 0;
@@ -333,10 +357,8 @@ class Player extends AcGameObject {
                 this.move_length = 0; // 移动距离置为0
                 this.vx = this.vy = 0; // 单位速度置为0
                 if (this.character === "robot") {
-                    // 如果是机器人到头,重新创建随机移动位置
-                    let tx = Math.random() * this.playground.width / this.playground.scale;
-                    let ty = Math.random() * this.playground.height / this.playground.scale;
-                    this.move_to(tx, ty);
+                    // 如果是机器人到指定位置,则重新创建随机移动位置
+                    this.update_robot_move();
                 }
             } else { // 需要移动
                 let moved = Math.min(this.move_length, this.speed * this.timedelta / 1000); // 真实的需要移动的距离
@@ -354,7 +376,11 @@ class Player extends AcGameObject {
             this.playground.score_board.lose();
         }
         for (let i = 0; i < this.playground.players.length; i++) { // 玩家死亡从玩家列表中删除
-            if (this.playground.players[i] === this) {
+            let player = this.playground.players[i]
+            if (player === this) {
+                if (player.character === "robot") {
+                    clearInterval(player.random_position_timerId); // 清除5s定时更新随机位置
+                }
                 this.playground.players.splice(i, 1);
                 this.playground.player_count--;
                 break;

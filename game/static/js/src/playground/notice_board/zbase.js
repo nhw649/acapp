@@ -3,7 +3,7 @@ class NoticeBoard extends AcGameObject {
         super();
         this.playground = playground;
         this.ctx = this.playground.game_map.ctx; // 获取画笔对象
-        // this.text = "已准备：0人"; // 提示板文字
+        // this.text = "已准备:0人"; // 提示板文字
         this.text = "已准备"; // 提示板文字
     }
 
@@ -23,9 +23,10 @@ class NoticeBoard extends AcGameObject {
     }
 
     render() {
-        this.ctx.font = "20px Arial";
+        this.ctx.font = "20px 黑体";
         this.ctx.fillStyle = "white";
         this.ctx.textAlign = "center";
-        this.ctx.fillText(this.text, this.playground.width / 2, 20); // 后两个参数是提示板位置
+        this.ctx.textBaseline = "top";
+        this.ctx.fillText(this.text, this.playground.width / 2, 5); // 后两个参数是提示板位置
     }
 }
