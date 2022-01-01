@@ -45,7 +45,7 @@ class MultiPlayerSocket {
         })
     }
 
-    send_create_player(username, photo, px, py) { // 向服务器发送创建玩家消息
+    send_create_player(username, photo, px, py, total) { // 向服务器发送创建玩家消息
         let outer = this;
         this.ws.send(JSON.stringify({
             'event': 'create_player',
@@ -53,7 +53,8 @@ class MultiPlayerSocket {
             'username': username,
             'photo': photo,
             'px': px,
-            'py': py
+            'py': py,
+            'total': total,
         }))
     }
 

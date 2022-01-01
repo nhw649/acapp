@@ -43,7 +43,7 @@ class MultiPlayer(AsyncWebsocketConsumer):
         transport.open()
         # 添加玩家到匹配系统
         client.add_player(player.score, data['uuid'], data['username'], data['photo'], data['px'], data['py'],
-                          self.channel_name)
+                          data['total'], self.channel_name)
         # Close!
         transport.close()
 

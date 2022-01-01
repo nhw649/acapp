@@ -19,7 +19,7 @@ all_structs = []
 
 
 class Iface(object):
-    def add_player(self, score, uuid, username, photo, px, py, channel_name):
+    def add_player(self, score, uuid, username, photo, px, py, total, channel_name):
         """
         Parameters:
          - score
@@ -28,6 +28,7 @@ class Iface(object):
          - photo
          - px
          - py
+         - total
          - channel_name
 
         """
@@ -55,7 +56,7 @@ class Client(Iface):
             self._oprot = oprot
         self._seqid = 0
 
-    def add_player(self, score, uuid, username, photo, px, py, channel_name):
+    def add_player(self, score, uuid, username, photo, px, py, total, channel_name):
         """
         Parameters:
          - score
@@ -64,13 +65,14 @@ class Client(Iface):
          - photo
          - px
          - py
+         - total
          - channel_name
 
         """
-        self.send_add_player(score, uuid, username, photo, px, py, channel_name)
+        self.send_add_player(score, uuid, username, photo, px, py, total, channel_name)
         return self.recv_add_player()
 
-    def send_add_player(self, score, uuid, username, photo, px, py, channel_name):
+    def send_add_player(self, score, uuid, username, photo, px, py, total, channel_name):
         self._oprot.writeMessageBegin('add_player', TMessageType.CALL, self._seqid)
         args = add_player_args()
         args.score = score
@@ -79,6 +81,7 @@ class Client(Iface):
         args.photo = photo
         args.px = px
         args.py = py
+        args.total = total
         args.channel_name = channel_name
         args.write(self._oprot)
         self._oprot.writeMessageEnd()
@@ -178,7 +181,7 @@ class Processor(Iface, TProcessor):
         iprot.readMessageEnd()
         result = add_player_result()
         try:
-            result.success = self._handler.add_player(args.score, args.uuid, args.username, args.photo, args.px, args.py, args.channel_name)
+            result.success = self._handler.add_player(args.score, args.uuid, args.username, args.photo, args.px, args.py, args.total, args.channel_name)
             msg_type = TMessageType.REPLY
         except TTransport.TTransportException:
             raise
@@ -230,18 +233,20 @@ class add_player_args(object):
      - photo
      - px
      - py
+     - total
      - channel_name
 
     """
 
 
-    def __init__(self, score=None, uuid=None, username=None, photo=None, px=None, py=None, channel_name=None,):
+    def __init__(self, score=None, uuid=None, username=None, photo=None, px=None, py=None, total=None, channel_name=None,):
         self.score = score
         self.uuid = uuid
         self.username = username
         self.photo = photo
         self.px = px
         self.py = py
+        self.total = total
         self.channel_name = channel_name
 
     def read(self, iprot):
@@ -284,6 +289,11 @@ class add_player_args(object):
                 else:
                     iprot.skip(ftype)
             elif fid == 7:
+                if ftype == TType.I32:
+                    self.total = iprot.readI32()
+                else:
+                    iprot.skip(ftype)
+            elif fid == 8:
                 if ftype == TType.STRING:
                     self.channel_name = iprot.readString().decode('utf-8', errors='replace') if sys.version_info[0] == 2 else iprot.readString()
                 else:
@@ -322,8 +332,12 @@ class add_player_args(object):
             oprot.writeFieldBegin('py', TType.DOUBLE, 6)
             oprot.writeDouble(self.py)
             oprot.writeFieldEnd()
+        if self.total is not None:
+            oprot.writeFieldBegin('total', TType.I32, 7)
+            oprot.writeI32(self.total)
+            oprot.writeFieldEnd()
         if self.channel_name is not None:
-            oprot.writeFieldBegin('channel_name', TType.STRING, 7)
+            oprot.writeFieldBegin('channel_name', TType.STRING, 8)
             oprot.writeString(self.channel_name.encode('utf-8') if sys.version_info[0] == 2 else self.channel_name)
             oprot.writeFieldEnd()
         oprot.writeFieldStop()
@@ -351,7 +365,8 @@ add_player_args.thrift_spec = (
     (4, TType.STRING, 'photo', 'UTF8', None, ),  # 4
     (5, TType.DOUBLE, 'px', None, None, ),  # 5
     (6, TType.DOUBLE, 'py', None, None, ),  # 6
-    (7, TType.STRING, 'channel_name', 'UTF8', None, ),  # 7
+    (7, TType.I32, 'total', None, None, ),  # 7
+    (8, TType.STRING, 'channel_name', 'UTF8', None, ),  # 8
 )
 
 

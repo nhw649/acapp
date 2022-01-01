@@ -24,7 +24,7 @@ class AcGamePlayground {
     }
 
     start() {
-        this.ready_player = 0; // 多人模式中已准备玩家数量
+        // this.ready_player = 0; // 多人模式中已准备玩家数量
 
         let uuid = this.create_uuid(); // 用唯一标识来判断关闭哪个窗口的监听界面事件
         $(window).on(`resize.${uuid}`, () => {// 监听界面缩放时,调整界面宽高
@@ -100,6 +100,7 @@ class AcGamePlayground {
         this.game_map = new GameMap(this); // 创建游戏地图
         this.notice_board = new NoticeBoard(this); // 创建提示板
         this.score_board = new ScoreBoard(this); // 创建对局结束状态
+        this.count_down = new CountDown(this); // 创建倒计时
 
         this.resize(); // 调整界面自适应
 
@@ -137,18 +138,18 @@ class AcGamePlayground {
             } else if (difficult_mode === "hard") { // 困难模式(敌人数量增多,速度变快,攻击频率变快,火球移动距离变长,火球移动速度变快,出生位置一样)
                 // 创建自己
                 let px = Math.random() * this.virtual_map_width, py = Math.random() * this.virtual_map_height; // 随机位置
-                this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, this.player_radius, this.player_color, this.player_speed, "me", this.root.settings.username, this.root.skin.img_src || this.root.settings.photo));
-
+                this.players.push(new Player(this, this.width * 0.85 / this.scale, this.height * 1.5 / this.scale, this.player_radius, this.player_color, this.player_speed, "me", this.root.settings.username, this.root.skin.img_src || this.root.settings.photo));
                 this.re_calculate_cx_cy(this.players[0].x, this.players[0].y); // 根据玩家位置确定画布相对于虚拟地图的偏移量
                 this.focus_player = this.players[0]; // 聚焦玩家是自己
 
                 this.robot_total = 20; // 机器人数量
                 // 创建机器人
                 for (let i = 0; i < this.robot_total; i++) {
-                    this.players.push(new Player(this, this.width / 2 / this.scale, 0.5, this.player_radius, this.get_random_color(), 0.3, "robot"));  // 创建机器人
+                    this.players.push(new Player(this, this.width * 0.85 / this.scale, this.height * 1.5 / this.scale, this.player_radius, this.get_random_color(), 0.3, "robot"));  // 创建机器人
                 }
             }
         } else if (this.mode === "multi mode") {
+            this.join_player_total = 5; // 加入房间的玩家数
             // 创建自己
             let px = Math.random() * this.virtual_map_width, py = Math.random() * this.virtual_map_height; // 随机位置
             this.players.push(new Player(this, px, py, this.player_radius, this.player_color, this.player_speed, "me", this.root.settings.username, this.root.skin.img_src || this.root.settings.photo));
@@ -161,7 +162,7 @@ class AcGamePlayground {
             this.mps.uuid = this.players[0].uuid; // 自己的唯一编号
             this.mps.ws.onopen = (() => { // 成功建立连接执行该回调
                 // 向服务器发送创建玩家消息
-                this.mps.send_create_player(this.root.settings.username, this.root.skin.img_src || this.root.settings.photo, px, py);
+                this.mps.send_create_player(this.root.settings.username, this.root.skin.img_src || this.root.settings.photo, px, py, this.join_player_total);
             })
         }
         // if (this.state === "waiting") {

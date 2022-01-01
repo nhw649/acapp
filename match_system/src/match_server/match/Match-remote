@@ -24,7 +24,7 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
     print('Usage: ' + sys.argv[0] + ' [-h host[:port]] [-u url] [-f[ramed]] [-s[sl]] [-novalidate] [-ca_certs certs] [-keyfile keyfile] [-certfile certfile] function [arg1 [arg2...]]')
     print('')
     print('Functions:')
-    print('  i32 add_player(i32 score, string uuid, string username, string photo, double px, double py, string channel_name)')
+    print('  i32 add_player(i32 score, string uuid, string username, string photo, double px, double py, i32 total, string channel_name)')
     print('  i32 remove_player(i32 score, string uuid, string username, string photo, double px, double py, string channel_name)')
     print('')
     sys.exit(0)
@@ -106,10 +106,10 @@ client = Match.Client(protocol)
 transport.open()
 
 if cmd == 'add_player':
-    if len(args) != 7:
-        print('add_player requires 7 args')
+    if len(args) != 8:
+        print('add_player requires 8 args')
         sys.exit(1)
-    pp.pprint(client.add_player(eval(args[0]), args[1], args[2], args[3], eval(args[4]), eval(args[5]), args[6],))
+    pp.pprint(client.add_player(eval(args[0]), args[1], args[2], args[3], eval(args[4]), eval(args[5]), eval(args[6]), args[7],))
 
 elif cmd == 'remove_player':
     if len(args) != 7:

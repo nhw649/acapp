@@ -87,5 +87,6 @@ class Difficult {
 
     hide() {
         this.$difficult.hide();
+        this.$difficult_description.hide();
     }
 }

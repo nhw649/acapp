@@ -21,6 +21,7 @@ from asgiref.sync import async_to_sync  # 异步转同步
 from django.core.cache import cache  # redis
 
 queue = Queue()  # 初始化消息队列
+player_total = 0  # 玩家匹配总数(多个线程共享全局变量)
 
 
 # 玩家
@@ -56,9 +57,9 @@ class Pool:
         return dt <= a_max_dif and dt <= b_max_dif
 
     def match_success(self, ps):
-        print("Match Success: %s %s %s" % (ps[0].username, ps[1].username, ps[2].username))
+        print("Match Success: %s %s %s %s %s" % (ps[0].username, ps[1].username, ps[2].username, ps[3].username, ps[4].username))
         # 房间名(方便使用keys查找)
-        room_name = "room-%s-%s-%s" % (ps[0].uuid, ps[1].uuid, ps[2].uuid)
+        room_name = "room-%s-%s-%s-%s-%s" % (ps[0].uuid, ps[1].uuid, ps[2].uuid, ps[3].uuid, ps[4].uuid)
         players = []  # 匹配玩家列表
         # 加入同一组
         for p in ps:  # 枚举匹配成功的玩家
@@ -92,14 +93,15 @@ class Pool:
             player.waiting_time += 1
 
     def match(self):
-        while (len(self.players) >= 3):
+        global player_total
+        while (len(self.players) >= player_total):
             self.players = sorted(self.players, key=lambda p: p.score)  # 分数从小到大排序
             flag = False  # 标记是否匹配
             for i in range(len(self.players) - 2):  # 检查三个玩家是否匹配
-                a, b, c = self.players[0], self.players[1], self.players[2]
+                a, b, c, d, e = self.players[0], self.players[1], self.players[2], self.players[3], self.players[4]
                 if self.check_match(a, b) and self.check_match(b, c) and self.check_match(a, c):
-                    self.match_success([a, b, c])
-                    self.players = self.players[:i] + self.players[i + 3:]  # 删除已匹配玩家
+                    self.match_success([a, b, c, d, e])
+                    self.players = self.players[:i] + self.players[i + player_total:]  # 删除已匹配玩家
                     flag = True
                     break
             if not flag:  # 没发生匹配直接退出
@@ -108,8 +110,10 @@ class Pool:
 
 
 class MatchHandler:
-    def add_player(self, score, uuid, username, photo, px, py, channel_name):
+    def add_player(self, score, uuid, username, photo, px, py, total, channel_name):
         print("Add Player: %s %d" % (username, score))
+        global player_total
+        player_total = total  # 匹配的玩家数
         player = Player(score, uuid, username, photo, px, py, channel_name)
         queue.put(player)
         return 0

@@ -19,7 +19,7 @@ class Player extends AcGameObject {
         this.photo = photo;
         this.move_length = 0; // 保存两点之间的距离
         this.eps = 0.01; // 用来和移动距离进行比较
-        this.spend_time = 0; // 倒计时开始
+        this.spend_time = 5; // 倒计时
         this.fireballs = []; // 存储每个玩家发的火球
         this.cur_skill = null; // 存储技能
 
@@ -46,19 +46,18 @@ class Player extends AcGameObject {
     }
 
     start() {
-        this.adjust_skill();
+        this.adjust_skill(); // 不同难度的技能调整
         this.playground.player_count++; // 玩家人数+1
         // this.playground.notice_board.write("已准备:" + this.playground.player_count + "人"); // 修改提示板文字
 
-        if (this.playground.player_count >= 3) {
+        if (this.playground.player_count >= 3) { // 匹配玩家人数满足
             this.playground.state = "fighting";
         }
 
         if (this.character === "me") { // 是自己才添加鼠标点击移动事件
             this.add_listening_events();
         } else if (this.character === "robot") { // 机器人
-            this.random_position_timerId = setInterval(() => {
-                // 5s创建一次随机移动位置
+            this.random_position_timerId = setInterval(() => { // 5s创建一次随机移动位置
                 // let tx = Math.random() * this.playground.width / this.playground.scale;
                 // let ty = Math.random() * this.playground.height / this.playground.scale;
                 this.update_robot_move();
@@ -272,17 +271,35 @@ class Player extends AcGameObject {
     }
 
     update() {
-        this.spend_time += this.timedelta / 1000; // 倒计时
-
+        // 更新绘制倒计时
+        if (this.playground.mode === "single mode") { // 单人模式
+            this.update_count_down();
+        } else if (this.playground.mode === "multi mode") { // 多人模式
+            if (this.playground.players.length === this.playground.player_total) { // 当玩家全部准备好才开始倒计时
+                this.update_count_down();
+            }
+        }
         this.update_move(); // 更新移动
-        this.update_robot_skill(); // 更新机器人技能
-        this.update_remain_player(); // 更新剩余玩家人数
-        this.update_coldtime(); // 更新技能冷却时间
-
-        if (this.character === "me" && this.playground.focus_player === this)  // 如果是玩家，并且正在被聚焦，修改background的 (cx, cy)
+        this.update_board_remain_player(); // 更新提示板剩余玩家人数
+        if (this.character === "me" && this.playground.focus_player === this) {  // 如果是玩家，并且正在被聚焦，修改background的 (cx, cy)
             this.playground.re_calculate_cx_cy(this.x, this.y);
-        this.update_win(); // 触发判断胜利事件
+        }
         this.render(); // 每一帧都画一个玩家
+
+        if (this.spend_time <= 0) { // 倒计时结束玩家或机器人才能使用技能
+            this.update_robot_skill(); // 更新机器人技能
+            this.update_coldtime(); // 更新技能冷却时间
+            this.update_win(); // 触发判断胜利事件
+        }
+    }
+
+    update_count_down() { // 更新绘制倒计时
+        if (this.spend_time > 0) { // 倒计时中绘制文字
+            this.playground.count_down.write(Math.ceil(this.spend_time)); // 修改倒计时文字
+        } else { // 倒计时结束删除文字
+            this.playground.count_down.destroy();
+        }
+        this.spend_time -= this.timedelta / 1000; // 倒计时计时器
     }
 
     update_win() { // 判断胜利事件
@@ -293,7 +310,7 @@ class Player extends AcGameObject {
         }
     }
 
-    update_remain_player() { // 更新剩余玩家人数
+    update_board_remain_player() { // 更新提示板剩余玩家人数
         if (this.playground.state === "fighting") {
             if (this.playground.mode === "single mode") { // 单人模式
                 this.playground.notice_board.write("战斗中!  玩家数量:" + this.playground.players.length + "/" + (this.playground.robot_total + 1));
@@ -317,17 +334,14 @@ class Player extends AcGameObject {
         let tx = Math.random() * this.playground.virtual_map_width;
         let ty = Math.random() * this.playground.virtual_map_height;
         this.move_to(tx, ty);
-        if (this.spend_time > 3 && Math.random() < 0.2) {
-            this.blink(tx, ty); // 机器人闪现
-            // if (this.random_position_timerId) clearInterval(this.random_position_timerId);
-            // this.random_position_timerId = setInterval(() => {
-            //     this.update_robot_move();
-            // }, 5000);
+        // 机器人闪现
+        if (this.spend_time <= 0 && Math.random() < 0.15) { // 0.2是闪现频率的
+            this.blink(tx, ty);
         }
     }
 
     update_robot_skill() { // 更新机器人技能
-        if (this.character === "robot" && this.spend_time > 3 && Math.random() < this.attack_frequency) { // 机器人自动攻击
+        if (this.character === "robot" && this.spend_time <= 0 && Math.random() < this.attack_frequency) { // 机器人自动攻击
             let player = this.playground.players[Math.floor(Math.random() * this.playground.players.length)];
             while (player === this) { // 机器人不能攻击自己
                 player = this.playground.players[Math.floor(Math.random() * this.playground.players.length)];
@@ -342,17 +356,15 @@ class Player extends AcGameObject {
     }
 
     update_move() { // 更新玩家移动
-        if (this.damage_speed > this.eps) {
-            // 击退时不受控制
+        if (this.damage_speed > this.eps) {  // 击退时不受控制
             this.vx = this.vy = 0;
             this.move_length = 0; // 无法移动
             this.cur_skill = null; // 击退时不能发射火球
             // 击退位移
             this.x += this.damage_x * this.damage_speed * this.timedelta / 1000;
             this.y += this.damage_y * this.damage_speed * this.timedelta / 1000;
-
             this.damage_speed *= this.friction; // 击退速度减少
-        } else {
+        } else { // 移动到指定位置
             if (this.move_length < this.eps) { // 已经移动到指定位置,不需要移动了
                 this.move_length = 0; // 移动距离置为0
                 this.vx = this.vy = 0; // 单位速度置为0
@@ -362,9 +374,10 @@ class Player extends AcGameObject {
                 }
             } else { // 需要移动
                 let moved = Math.min(this.move_length, this.speed * this.timedelta / 1000); // 真实的需要移动的距离
-                this.x += moved * this.vx; // 确定方向＋移动距离
+                // 确定方向＋移动距离
+                this.x += moved * this.vx;
                 this.y += moved * this.vy;
-                this.move_length -= moved;
+                this.move_length -= moved; // 剩余需要移动的距离
             }
         }
     }
@@ -395,17 +408,18 @@ class Player extends AcGameObject {
         this.ctx.stroke();
         this.ctx.clip();
         this.ctx.drawImage(img, (x - r) * scale, (y - r) * scale, r * 2 * scale, r * 2 * scale);
-        // 渲染技能按键文字
-        this.ctx.font = "bold 25px Arial"
+        // 渲染技能按键提示文字
+        this.ctx.font = "bold 25px Arial";
         this.ctx.fillStyle = "white"
         this.ctx.textBaseline = "middle";
-        this.ctx.fillText(text, x * scale, y * scale * 1.02)
+        this.ctx.fillText(text, x * scale, y * scale * 1.02);
         this.ctx.restore();
         this.ctx.text
     }
 
     render_skill_mask(scale, x, y, r, coldtime, init_coldtime) { // 渲染技能蒙板
         if (coldtime > 0) { // 冷却时间不为0才画蒙板
+            if (coldtime === init_coldtime) coldtime = 0; // 游戏倒计时3s开始前渲染蒙版
             this.ctx.beginPath();
             this.ctx.lineTo(x * scale, y * scale);
             this.ctx.arc(x * scale, y * scale, r * scale, 0 - Math.PI / 2, (1 - coldtime / init_coldtime) * Math.PI * 2 - Math.PI / 2, true); // 顺时针
