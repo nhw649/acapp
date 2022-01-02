@@ -3,7 +3,7 @@
 import glob
 import sys
 from itertools import combinations
-from scipy.special import comb
+import math
 
 sys.path.insert(0, glob.glob('../../')[0])  # 这样才能引入django的包
 
@@ -108,14 +108,14 @@ class Pool:
         while (len(self.players) >= player_total):
             self.players = sorted(self.players, key=lambda p: p.score)  # 分数从小到大排序
             flag = False  # 标记是否匹配
-            check_flag = False
+            check_flag = False  # 标记检查匹配
             x = 0
             for i in range(len(self.players) - player_total + 1):  # 检查三个玩家是否匹配
                 # a, b, c, d, e = self.players[0], self.players[1], self.players[2], self.players[3], self.players[4]
-                for j in combinations(self.players, 2):
+                for j in combinations(self.players, 2):  # 利用组合来判断能否匹配
                     if self.check_match(j):
                         x += 1
-                    if x == int(comb(player_total, 2)):
+                    if x == math.comb(player_total, 2):  # 如果都能满足匹配
                         check_flag = True
                     if check_flag:
                         self.match_success(self.players)

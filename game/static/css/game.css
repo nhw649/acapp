@@ -14,7 +14,7 @@ canvas {
     outline: none;
 }
 
-.ac-game-menu, .ac-game-setting, .ac-game-difficult {
+.ac-game-menu, .ac-game-setting, .ac-game-difficult, .ac-game-melee {
     width: 100%;
     height: 100%;
     /*background-image: url("https://django-project.oss-cn-shanghai.aliyuncs.com/background/201112111638-5.jpg");*/
@@ -22,14 +22,14 @@ canvas {
     user-select: none;
 }
 
-.ac-game-menu-field, .ac-game-setting-field, .ac-game-difficult-field {
+.ac-game-menu-field, .ac-game-setting-field, .ac-game-difficult-field, .ac-game-melee-field {
     width: 20vw;
     position: relative;
     top: 20%;
     left: 20%;
 }
 
-.menu-field-item, .setting-field-item, .difficult-field-item {
+.menu-field-item, .setting-field-item, .difficult-field-item, .melee-field-item {
     height: 10vh;
     width: 15vw;
     color: white;
@@ -43,7 +43,7 @@ canvas {
     cursor: pointer;
 }
 
-.menu-field-item:hover, .setting-field-item:hover, .difficult-field-item:hover {
+.menu-field-item:hover, .setting-field-item:hover, .difficult-field-item:hover, .melee-field-item:hover {
     transform: scale(1.2);
     transition: all 0.2s;
 }

@@ -98,7 +98,7 @@ class AcGameMenu {
             this.hide();
             this.$message_board.hide();
             this.mode = "multi mode";
-            this.root.skin.show(); // 显示皮肤界面
+            this.root.melee.show(); // 显示选择多人乱斗模式界面
         });
 
         this.$rank.click(() => {

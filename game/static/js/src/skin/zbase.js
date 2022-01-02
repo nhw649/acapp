@@ -83,9 +83,13 @@ class Skin {
     }
 
     add_listening_events() {
-        this.$skin_back.click(() => { // 返回菜单事件
+        this.$skin_back.click(() => { // 返回事件
             this.hide();
-            this.root.menu.show();
+            if (this.root.menu.mode === "single mode") {
+                this.root.difficult.show();
+            } else if (this.root.menu.mode === "multi mode") {
+                this.root.melee.show();
+            }
         });
 
         let outer = this;

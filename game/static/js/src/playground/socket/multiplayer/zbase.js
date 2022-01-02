@@ -63,7 +63,6 @@ class MultiPlayerSocket {
         let player = new Player(this.playground, px, py, this.playground.player_radius, this.playground.player_color, this.playground.player_speed, "enemy", username, photo);
         player.uuid = uuid; // 统一不同窗口同一玩家的uid
         this.playground.players.push(player);
-        this.playground.player_total = this.playground.players.length; // 玩家总数量
     }
 
     // send_remove_player(username) { // 向服务器发送删除玩家消息

@@ -24,8 +24,6 @@ class AcGamePlayground {
     }
 
     start() {
-        // this.ready_player = 0; // 多人模式中已准备玩家数量
-
         let uuid = this.create_uuid(); // 用唯一标识来判断关闭哪个窗口的监听界面事件
         $(window).on(`resize.${uuid}`, () => {// 监听界面缩放时,调整界面宽高
             this.resize();
@@ -149,7 +147,6 @@ class AcGamePlayground {
                 }
             }
         } else if (this.mode === "multi mode") {
-            this.join_player_total = 5; // 加入房间的玩家数
             // 创建自己
             let px = Math.random() * this.virtual_map_width, py = Math.random() * this.virtual_map_height; // 随机位置
             this.players.push(new Player(this, px, py, this.player_radius, this.player_color, this.player_speed, "me", this.root.settings.username, this.root.skin.img_src || this.root.settings.photo));

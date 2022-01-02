@@ -50,7 +50,7 @@ class Player extends AcGameObject {
         this.playground.player_count++; // 玩家人数+1
         // this.playground.notice_board.write("已准备:" + this.playground.player_count + "人"); // 修改提示板文字
 
-        if (this.playground.player_count >= 3) { // 匹配玩家人数满足
+        if (this.playground.player_count >= this.playground.join_player_total) { // 匹配玩家人数满足
             this.playground.state = "fighting";
         }
 
@@ -275,7 +275,8 @@ class Player extends AcGameObject {
         if (this.playground.mode === "single mode") { // 单人模式
             this.update_count_down();
         } else if (this.playground.mode === "multi mode") { // 多人模式
-            if (this.playground.players.length === this.playground.player_total) { // 当玩家全部准备好才开始倒计时
+            console.log(this.playground.players.length,this.playground.join_player_total)
+            if (this.playground.players.length === this.playground.join_player_total) { // 当玩家全部准备好才开始倒计时
                 this.update_count_down();
             }
         }
@@ -315,7 +316,7 @@ class Player extends AcGameObject {
             if (this.playground.mode === "single mode") { // 单人模式
                 this.playground.notice_board.write("战斗中!  玩家数量:" + this.playground.players.length + "/" + (this.playground.robot_total + 1));
             } else if (this.playground.mode === "multi mode") { // 多人模式
-                this.playground.notice_board.write("战斗中!  玩家数量:" + this.playground.players.length + "/" + this.playground.player_total);
+                this.playground.notice_board.write("战斗中!  玩家数量:" + this.playground.players.length + "/" + this.playground.join_player_total);
             }
         }
     }
