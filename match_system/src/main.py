@@ -2,6 +2,8 @@
 
 import glob
 import sys
+from itertools import combinations
+from scipy.special import comb
 
 sys.path.insert(0, glob.glob('../../')[0])  # 这样才能引入django的包
 
@@ -21,7 +23,7 @@ from asgiref.sync import async_to_sync  # 异步转同步
 from django.core.cache import cache  # redis
 
 queue = Queue()  # 初始化消息队列
-player_total = 0  # 玩家匹配总数(多个线程共享全局变量)
+player_total = 10  # 玩家匹配总数(多个线程共享全局变量)
 
 
 # 玩家
@@ -48,18 +50,27 @@ class Pool:
     # def remove_player(self, player):
     #     self.players.remove(player)
 
-    def check_match(self, a, b):  # 检查是否能够匹配
+    def check_match(self, t):  # 检查是否能够匹配
         # if a.username == b.username:  # 不能匹配自己
         #     return False
-        dt = abs(a.score - b.score)
-        a_max_dif = a.waiting_time * 50
-        b_max_dif = b.waiting_time * 50
+        dt = abs(t[0].score - t[1].score)
+        a_max_dif = t[0].waiting_time * 50
+        b_max_dif = t[1].waiting_time * 50
         return dt <= a_max_dif and dt <= b_max_dif
 
     def match_success(self, ps):
-        print("Match Success: %s %s %s %s %s" % (ps[0].username, ps[1].username, ps[2].username, ps[3].username, ps[4].username))
+        # 打印匹配成功玩家名
+        # print("Match Success: %s %s %s %s %s" % (ps[0].username, ps[1].username, ps[2].username, ps[3].username, ps[4].username))
+        match_hint = "Match Success:"
+        for p in ps:
+            match_hint += ' ' + p.username
+        print(match_hint)
         # 房间名(方便使用keys查找)
-        room_name = "room-%s-%s-%s-%s-%s" % (ps[0].uuid, ps[1].uuid, ps[2].uuid, ps[3].uuid, ps[4].uuid)
+        # room_name = "room-%s-%s-%s-%s-%s" % (ps[0].uuid, ps[1].uuid, ps[2].uuid, ps[3].uuid, ps[4].uuid)
+        room_name = "room"
+        for p in ps:
+            room_name += '-' + p.uuid
+
         players = []  # 匹配玩家列表
         # 加入同一组
         for p in ps:  # 枚举匹配成功的玩家
@@ -97,13 +108,20 @@ class Pool:
         while (len(self.players) >= player_total):
             self.players = sorted(self.players, key=lambda p: p.score)  # 分数从小到大排序
             flag = False  # 标记是否匹配
-            for i in range(len(self.players) - 2):  # 检查三个玩家是否匹配
-                a, b, c, d, e = self.players[0], self.players[1], self.players[2], self.players[3], self.players[4]
-                if self.check_match(a, b) and self.check_match(b, c) and self.check_match(a, c):
-                    self.match_success([a, b, c, d, e])
-                    self.players = self.players[:i] + self.players[i + player_total:]  # 删除已匹配玩家
-                    flag = True
-                    break
+            check_flag = False
+            x = 0
+            for i in range(len(self.players) - player_total + 1):  # 检查三个玩家是否匹配
+                # a, b, c, d, e = self.players[0], self.players[1], self.players[2], self.players[3], self.players[4]
+                for j in combinations(self.players, 2):
+                    if self.check_match(j):
+                        x += 1
+                    if x == int(comb(player_total, 2)):
+                        check_flag = True
+                    if check_flag:
+                        self.match_success(self.players)
+                        self.players = self.players[:i] + self.players[i + player_total:]  # 删除已匹配玩家
+                        flag = True
+                        break
             if not flag:  # 没发生匹配直接退出
                 break
         self.increase_waiting_time()
