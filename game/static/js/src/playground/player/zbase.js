@@ -49,7 +49,6 @@ class Player extends AcGameObject {
         this.adjust_skill(); // 不同难度的技能调整
         this.playground.player_count++; // 玩家人数+1
         // this.playground.notice_board.write("已准备:" + this.playground.player_count + "人"); // 修改提示板文字
-        console.log(this.playground.player_count)
         if (this.playground.mode === "single mode") {
             this.playground.state = "fighting";
         } else if (this.playground.mode === "multi mode") {
@@ -102,9 +101,6 @@ class Player extends AcGameObject {
     }
 
     add_listening_events() {
-        this.playground.game_map.$canvas.on("contextmenu", function () {
-            return false; // 防止右键出现菜单选项
-        });
         this.playground.game_map.$canvas.mousedown((e) => {
             if (this.playground.state !== "fighting")
                 return false; // 非战斗中不能移动和使用技能
@@ -151,29 +147,15 @@ class Player extends AcGameObject {
         })
 
         this.playground.game_map.$canvas.keydown((e) => { // 绑定到canvas上,不会触发其他窗口的键盘事件
-            console.log(e.which)
-            // 聊天框按键
-            if (e.which === 13) // 监听回车事件
-            {
-                if (this.playground.mode === "multi mode" && this.playground.state !== "waiting") { // 打开聊天框
-                    this.playground.chat_field.show_input();
-                    return false;
-                }
-            } else if (e.which === 27) {
-                if (this.playground.mode === "multi mode" && this.playground.state !== "waiting") { // 关闭聊天框
-                    this.playground.chat_field.hide_input();
-                    return false;
-                }
-            }
             if (this.playground.state !== "fighting")
                 return true; // 非战斗中不能发射火球
             // 技能按键
-            if (e.which === 81 && this.hp > 0) {
+            if (e.which === 81 && this.hp > 0) { // 火球技能
                 if (this.fireball_coldtime > 0)
                     return true; // 火球技能冷却中
                 this.cur_skill = "fireball";
                 return false;
-            } else if (e.which === 70) {
+            } else if (e.which === 70) { // 闪现技能
                 if (this.blink_coldtime > 0)
                     return true; // 闪现技能冷却中
                 this.cur_skill = "blink";
@@ -280,7 +262,6 @@ class Player extends AcGameObject {
         if (this.playground.mode === "single mode") { // 单人模式
             this.update_count_down();
         } else if (this.playground.mode === "multi mode") { // 多人模式
-            console.log(this.playground.players.length, this.playground.join_player_total)
             if (this.playground.players.length === this.playground.join_player_total) { // 当玩家全部准备好才开始倒计时
                 this.update_count_down();
             }
@@ -289,6 +270,9 @@ class Player extends AcGameObject {
         this.update_board_remain_player(); // 更新提示板剩余玩家人数
         if (this.character === "me" && this.playground.focus_player === this) {  // 如果是玩家，并且正在被聚焦，修改background的 (cx, cy)
             this.playground.re_calculate_cx_cy(this.x, this.y);
+        }
+        if (this.state === "over") {
+            this.focus_player = this.players[this.players.length - 1];
         }
         this.render(); // 每一帧都画一个玩家
 

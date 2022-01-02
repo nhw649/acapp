@@ -35,6 +35,28 @@ class AcGamePlayground {
         }
     }
 
+    add_listening_events() {
+        this.game_map.$canvas.on("contextmenu", function () { // 防止右键出现菜单选项
+            return false;
+        });
+
+        this.game_map.$canvas.keydown((e) => {
+            // 聊天框按键
+            if (e.which === 13) // 监听回车事件
+            {
+                if (this.mode === "multi mode" && this.state !== "waiting") { // 打开聊天框
+                    this.chat_field.show_input();
+                    return false;
+                }
+            } else if (e.which === 27) {
+                if (this.mode === "multi mode" && this.state !== "waiting") { // 关闭聊天框
+                    this.chat_field.hide_input();
+                    return false;
+                }
+            }
+        });
+    }
+
     resize() { // 调整界面宽高(统一单位长度)
         this.width = this.$playground.width();
         this.height = this.$playground.height();
@@ -81,6 +103,7 @@ class AcGamePlayground {
 
     show() {
         this.$playground.show(); // 显示游戏界面
+
         this.width = this.$playground.width(); // 存储界面的宽度
         this.height = this.$playground.height(); // 存储界面的高度
         // 虚拟地图大小改成相对大小
@@ -100,6 +123,7 @@ class AcGamePlayground {
         this.score_board = new ScoreBoard(this); // 创建对局结束状态
         this.count_down = new CountDown(this); // 创建倒计时
 
+        this.add_listening_events();
         this.resize(); // 调整界面自适应
 
         if (this.mode === "single mode") {
@@ -140,7 +164,7 @@ class AcGamePlayground {
                 this.re_calculate_cx_cy(this.players[0].x, this.players[0].y); // 根据玩家位置确定画布相对于虚拟地图的偏移量
                 this.focus_player = this.players[0]; // 聚焦玩家是自己
 
-                this.robot_total = 20; // 机器人数量
+                this.robot_total = 25; // 机器人数量
                 // 创建机器人
                 for (let i = 0; i < this.robot_total; i++) {
                     this.players.push(new Player(this, this.width * 0.85 / this.scale, this.height * 1.5 / this.scale, this.player_radius, this.get_random_color(), 0.3, "robot"));  // 创建机器人

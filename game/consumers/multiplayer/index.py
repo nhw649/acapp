@@ -116,7 +116,7 @@ class MultiPlayer(AsyncWebsocketConsumer):
 
         if remain_cnt > 1:
             if self.room_name:
-                cache.set(self.room_name, players, 3600)  # 更新redis
+                cache.set(self.room_name, players, 3600)  # 更新redis(过期时间1h)
         else:  # 没有剩余玩家则更新数据库
             def db_update_player_score(username, score):
                 player = Player.objects.get(user__username=username)
@@ -128,6 +128,7 @@ class MultiPlayer(AsyncWebsocketConsumer):
                     await database_sync_to_async(db_update_player_score)(player['username'], -50)
                 else:  # 胜利加100分
                     await database_sync_to_async(db_update_player_score)(player['username'], 100)
+            cache.delete(self.room_name) # 游戏结束清除该房间
 
         # 组内中发送消息
         await self.channel_layer.group_send(
