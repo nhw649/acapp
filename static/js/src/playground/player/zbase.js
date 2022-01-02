@@ -49,9 +49,13 @@ class Player extends AcGameObject {
         this.adjust_skill(); // 不同难度的技能调整
         this.playground.player_count++; // 玩家人数+1
         // this.playground.notice_board.write("已准备:" + this.playground.player_count + "人"); // 修改提示板文字
-
-        if (this.playground.player_count >= this.playground.join_player_total) { // 匹配玩家人数满足
+        console.log(this.playground.player_count)
+        if (this.playground.mode === "single mode") {
             this.playground.state = "fighting";
+        } else if (this.playground.mode === "multi mode") {
+            if (this.playground.player_count >= this.playground.join_player_total) { // 玩家人数满足
+                this.playground.state = "fighting";
+            }
         }
 
         if (this.character === "me") { // 是自己才添加鼠标点击移动事件
@@ -147,6 +151,7 @@ class Player extends AcGameObject {
         })
 
         this.playground.game_map.$canvas.keydown((e) => { // 绑定到canvas上,不会触发其他窗口的键盘事件
+            console.log(e.which)
             // 聊天框按键
             if (e.which === 13) // 监听回车事件
             {
@@ -275,7 +280,7 @@ class Player extends AcGameObject {
         if (this.playground.mode === "single mode") { // 单人模式
             this.update_count_down();
         } else if (this.playground.mode === "multi mode") { // 多人模式
-            console.log(this.playground.players.length,this.playground.join_player_total)
+            console.log(this.playground.players.length, this.playground.join_player_total)
             if (this.playground.players.length === this.playground.join_player_total) { // 当玩家全部准备好才开始倒计时
                 this.update_count_down();
             }

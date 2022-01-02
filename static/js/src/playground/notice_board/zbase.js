@@ -4,7 +4,7 @@ class NoticeBoard extends AcGameObject {
         this.playground = playground;
         this.ctx = this.playground.game_map.ctx; // 获取画笔对象
         // this.text = "已准备:0人"; // 提示板文字
-        this.text = "已准备"; // 提示板文字
+        this.text = "匹配中..."; // 提示板文字
     }
 
     start() {
