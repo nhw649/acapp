@@ -1,11 +1,11 @@
 class AcGamePlayground {
     constructor(root) {
         this.root = root;
-        this.focus_player = null; // 镜头聚焦玩家
         this.$playground = $(`
 <div class="ac-game-playground"></div>
 `);
         this.root.$ac_game.append(this.$playground);
+
         this.hide(); // 隐藏游戏界面
         this.start();
     }
@@ -39,7 +39,6 @@ class AcGamePlayground {
         this.game_map.$canvas.on("contextmenu", function () { // 防止右键出现菜单选项
             return false;
         });
-
         this.game_map.$canvas.keydown((e) => {
             // 聊天框按键
             if (e.which === 13) // 监听回车事件
@@ -54,7 +53,23 @@ class AcGamePlayground {
                     return false;
                 }
             }
+            if (this.state !== "over") // 玩家over后才能切换观战
+                return true;
+            // 观战按键
+            if (e.which === 81) { // Q切换上一位玩家
+                this.focus_index--;
+                this.keydown_focus_player();
+            } else if (e.which === 69) { // E切换下一位玩家
+                this.focus_index++;
+                this.keydown_focus_player();
+            }
         });
+    }
+
+    keydown_focus_player() { // 按Q/E键聚集玩家
+        let mod = this.players.length;
+        this.focus_index = (this.focus_index % mod + mod) % mod; // 防止索引越界
+        this.focus_player = this.players[this.focus_index];
     }
 
     resize() { // 调整界面宽高(统一单位长度)
@@ -69,18 +84,35 @@ class AcGamePlayground {
         if (this.mini_map) this.mini_map.resize(); // 小地图存在就调整一次界面
     }
 
-    re_calculate_cx_cy(x, y) { // 调整位置
-        // 玩家离地图中心点的距离
-        this.cx = x - this.width / 2 / this.scale;
-        this.cy = y - this.height / 2 / this.scale;
+    // re_calculate_cx_cy(x, y) { // 调整位置
+    //     // 玩家离地图中心点的距离
+    //     this.cx = x - this.width / 2 / this.scale;
+    //     this.cy = y - this.height / 2 / this.scale;
+    //
+    //     let l = this.game_map.l; // 0.15
+    //     if (this.focus_player) {
+    //         this.cx = Math.max(this.cx, -2 * l);
+    //         this.cx = Math.min(this.cx, this.virtual_map_width - (this.width / this.scale - 2 * l));
+    //         this.cy = Math.max(this.cy, -l);
+    //         this.cy = Math.min(this.cy, this.virtual_map_height - (this.height / this.scale - l));
+    //     }
+    // }
 
-        let l = this.game_map.l; // 0.15
-        if (this.focus_player) {
-            this.cx = Math.max(this.cx, -2 * l);
-            this.cx = Math.min(this.cx, this.virtual_map_width - (this.width / this.scale - 2 * l));
-            this.cy = Math.max(this.cy, -l);
-            this.cy = Math.min(this.cy, this.virtual_map_height - (this.height / this.scale - l));
+    re_calculate_cx_cy(x = null, y = null) { // 调整位置
+        // 玩家离地图中心点的距离
+        if (x && y) {
+            this.cx = x - this.width / 2 / this.scale;
+            this.cy = y - this.height / 2 / this.scale;
+        } else {
+            this.focus_player = this.players[this.focus_index];
+            this.cx = this.players[this.focus_index].x - this.width / 2 / this.scale;
+            this.cy = this.players[this.focus_index].y - this.height / 2 / this.scale;
         }
+        let l = this.game_map.l; // 0.15
+        this.cx = Math.max(this.cx, -2 * l);
+        this.cx = Math.min(this.cx, this.virtual_map_width - (this.width / this.scale - 2 * l));
+        this.cy = Math.max(this.cy, -l);
+        this.cy = Math.min(this.cy, this.virtual_map_height - (this.height / this.scale - l));
     }
 
     // add_cancel_waiting() { // 监听准备中返回菜单事件
@@ -117,6 +149,7 @@ class AcGamePlayground {
         this.player_radius = 0.045; // 玩家半径大小
         this.player_speed = 0.25; // 玩家移动速度
         this.player_color = "rgb(203,11,10)"; // 玩家边框和粒子颜色
+        this.focus_index = 0; // 聚焦玩家的索引
 
         this.game_map = new GameMap(this); // 创建游戏地图
         this.notice_board = new NoticeBoard(this); // 创建提示板
@@ -134,9 +167,6 @@ class AcGamePlayground {
                 let px = Math.random() * this.virtual_map_width, py = Math.random() * this.virtual_map_height; // 随机位置
                 this.players.push(new Player(this, px, py, this.player_radius, this.player_color, this.player_speed, "me", this.root.settings.username, this.root.skin.img_src || this.root.settings.photo));
 
-                this.re_calculate_cx_cy(this.players[0].x, this.players[0].y); // 根据玩家位置确定画布相对于虚拟地图的偏移量
-                this.focus_player = this.players[0]; // 聚焦玩家是自己
-
                 this.robot_total = 10; // 机器人数量
                 // 创建机器人
                 for (let i = 0; i < this.robot_total; i++) {
@@ -148,9 +178,6 @@ class AcGamePlayground {
                 let px = Math.random() * this.virtual_map_width, py = Math.random() * this.virtual_map_height; // 随机位置
                 this.players.push(new Player(this, px, py, this.player_radius, this.player_color, this.player_speed, "me", this.root.settings.username, this.root.skin.img_src || this.root.settings.photo));
 
-                this.re_calculate_cx_cy(this.players[0].x, this.players[0].y); // 根据玩家位置确定画布相对于虚拟地图的偏移量
-                this.focus_player = this.players[0]; // 聚焦玩家是自己
-
                 this.robot_total = 15; // 机器人数量
                 // 创建机器人
                 for (let i = 0; i < this.robot_total; i++) {
@@ -161,8 +188,6 @@ class AcGamePlayground {
                 // 创建自己
                 let px = Math.random() * this.virtual_map_width, py = Math.random() * this.virtual_map_height; // 随机位置
                 this.players.push(new Player(this, this.width * 0.85 / this.scale, this.height * 1.5 / this.scale, this.player_radius, this.player_color, this.player_speed, "me", this.root.settings.username, this.root.skin.img_src || this.root.settings.photo));
-                this.re_calculate_cx_cy(this.players[0].x, this.players[0].y); // 根据玩家位置确定画布相对于虚拟地图的偏移量
-                this.focus_player = this.players[0]; // 聚焦玩家是自己
 
                 this.robot_total = 25; // 机器人数量
                 // 创建机器人
@@ -175,20 +200,21 @@ class AcGamePlayground {
             let px = Math.random() * this.virtual_map_width, py = Math.random() * this.virtual_map_height; // 随机位置
             this.players.push(new Player(this, px, py, this.player_radius, this.player_color, this.player_speed, "me", this.root.settings.username, this.root.skin.img_src || this.root.settings.photo));
 
-            this.re_calculate_cx_cy(this.players[0].x, this.players[0].y); // 根据玩家位置确定画布相对于虚拟地图的偏移量
-            this.focus_player = this.players[0]; // 聚焦玩家是自己
-
             this.chat_field = new ChatField(this); // 创建聊天框
             this.mps = new MultiPlayerSocket(this); // 建立ws连接
             this.mps.uuid = this.players[0].uuid; // 自己的唯一编号
             this.mps.ws.onopen = (() => { // 成功建立连接执行该回调
                 // 向服务器发送创建玩家消息
                 this.mps.send_create_player(this.root.settings.username, this.root.skin.img_src || this.root.settings.photo, px, py, this.join_player_total);
-            })
+            });
         }
         // if (this.state === "waiting") {
         //     this.add_cancel_waiting(); // 准备中返回菜单事件
         // }
+
+        // this.re_calculate_cx_cy(this.players[0].x, this.players[0].y); // 根据玩家位置确定画布相对于虚拟地图的偏移量
+        // this.focus_player = this.players[0]; // 聚焦玩家是自己
+        this.re_calculate_cx_cy();
         // 在地图和玩家都创建好后,创建小地图对象
         this.mini_map = new MiniMap(this, this.game_map);
         this.mini_map.resize();

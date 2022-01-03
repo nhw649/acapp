@@ -147,10 +147,15 @@ class Player extends AcGameObject {
         })
 
         this.playground.game_map.$canvas.keydown((e) => { // 绑定到canvas上,不会触发其他窗口的键盘事件
+            // 按空格聚焦玩家
+            if (e.which === 32) {
+                this.playground.re_calculate_cx_cy();
+                return false;
+            }
             if (this.playground.state !== "fighting")
-                return true; // 非战斗中不能发射火球
+                return true; // 非战斗中不能使用按键
             // 技能按键
-            if (e.which === 81 && this.hp > 0) { // 火球技能
+            if (e.which === 81) { // 火球技能
                 if (this.fireball_coldtime > 0)
                     return true; // 火球技能冷却中
                 this.cur_skill = "fireball";
@@ -159,12 +164,6 @@ class Player extends AcGameObject {
                 if (this.blink_coldtime > 0)
                     return true; // 闪现技能冷却中
                 this.cur_skill = "blink";
-                return false;
-            }
-            // 按空格聚焦玩家
-            if (e.which === 32) {
-                this.playground.focus_player = this;
-                this.playground.re_calculate_cx_cy(this.x, this.y);
                 return false;
             }
         })
@@ -203,10 +202,10 @@ class Player extends AcGameObject {
         let angle = Math.atan2(ty - this.y, tx - this.x); // 闪现角度
         this.x += d * Math.cos(angle);
         this.y += d * Math.sin(angle);
-
         if (this.character !== "robot") {
             this.blink_coldtime = 3; // 重置闪现cd
             // this.move_length = 0; // 闪现完停止移动
+            this.move_length -= d;
         }
     }
 
@@ -266,17 +265,18 @@ class Player extends AcGameObject {
                 this.update_count_down();
             }
         }
+
         this.update_move(); // 更新移动
-        this.update_board_remain_player(); // 更新提示板剩余玩家人数
-        if (this.character === "me" && this.playground.focus_player === this) {  // 如果是玩家，并且正在被聚焦，修改background的 (cx, cy)
-            this.playground.re_calculate_cx_cy(this.x, this.y);
+        this.update_board(); // 更新提示板
+
+        // 聚焦玩家
+        if ((this.character === "me" && this.playground.focus_player === this) || (this.playground.state === "over" && this.playground.focus_player)) {
+            this.playground.re_calculate_cx_cy();
         }
-        if (this.state === "over") {
-            this.focus_player = this.players[this.players.length - 1];
-        }
+
         this.render(); // 每一帧都画一个玩家
 
-        if (this.spend_time <= 0) { // 倒计时结束玩家或机器人才能使用技能
+        if (this.spend_time <= 0) { // 倒计时结束才能触发以下事件
             this.update_robot_skill(); // 更新机器人技能
             this.update_coldtime(); // 更新技能冷却时间
             this.update_win(); // 触发判断胜利事件
@@ -295,17 +295,29 @@ class Player extends AcGameObject {
     update_win() { // 判断胜利事件
         if (this.playground.state === "fighting" && this.character === "me" && this.playground.players.length === 1) {
             this.playground.state = "over";
-            this.playground.notice_board.write("胜利!");
             this.playground.score_board.win();
+        }
+        if (this.playground.state === "over" && this.character === "me" && this.playground.players.length === 1) {
+            this.playground.notice_board.write("胜利!");
         }
     }
 
-    update_board_remain_player() { // 更新提示板剩余玩家人数
+    update_board() { // 更新提示板剩余玩家人数
         if (this.playground.state === "fighting") {
             if (this.playground.mode === "single mode") { // 单人模式
                 this.playground.notice_board.write("战斗中!  玩家数量:" + this.playground.players.length + "/" + (this.playground.robot_total + 1));
             } else if (this.playground.mode === "multi mode") { // 多人模式
                 this.playground.notice_board.write("战斗中!  玩家数量:" + this.playground.players.length + "/" + this.playground.join_player_total);
+            }
+        } else if (this.playground.state === "over") { // 非战斗中且当前玩家失败
+            // 防止聚焦玩家索引越界
+            let mod = this.playground.players.length;
+            this.playground.focus_index = (this.playground.focus_index % mod + mod) % mod;
+
+            if (this.playground.mode === "single mode") { // 单人模式
+                this.playground.notice_board.write("观战中...  玩家数量:" + this.playground.players.length + "/" + (this.playground.robot_total + 1));
+            } else if (this.playground.mode === "multi mode") { // 多人模式
+                this.playground.notice_board.write("观战中...  玩家数量:" + this.playground.players.length + "/" + this.playground.join_player_total);
             }
         }
     }
@@ -373,12 +385,8 @@ class Player extends AcGameObject {
     }
 
     on_destroy() {
-        if (this.character === "me" && this.playground.state === "fighting") { // 判断失败
-            this.playground.state = "over";
-            this.playground.notice_board.write("观战中...");
-            this.playground.score_board.lose();
-        }
-        for (let i = 0; i < this.playground.players.length; i++) { // 玩家死亡从玩家列表中删除
+        // 玩家死亡从玩家列表中删除
+        for (let i = 0; i < this.playground.players.length; i++) {
             let player = this.playground.players[i]
             if (player === this) {
                 if (player.character === "robot") {
@@ -388,6 +396,11 @@ class Player extends AcGameObject {
                 this.playground.player_count--;
                 break;
             }
+        }
+        // 判断失败
+        if (this.character === "me" && this.playground.state === "fighting") {
+            this.playground.state = "over";
+            this.playground.score_board.lose();
         }
     }
 

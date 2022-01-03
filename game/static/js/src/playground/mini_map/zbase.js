@@ -61,6 +61,7 @@ class MiniMap extends AcGameObject {
                 outer.drag = false;
 
                 outer.playground.focus_player = null;
+                // outer.playground.re_calculate_cx_cy(tx, ty);
                 outer.playground.re_calculate_cx_cy(tx, ty);
                 // (rect_x1, rect_y1)为小地图上框框的左上角的坐标（非相对坐标）
                 outer.rect_x1 = ctx_x - (outer.playground.width / 2 / outer.playground.scale / outer.playground.virtual_map_width) * outer.width;
@@ -103,10 +104,12 @@ class MiniMap extends AcGameObject {
     }
 
     render() {
+        // 渲染小地图背景
         let scale = this.playground.scale;
         this.ctx.clearRect(0, 0, this.width, this.height); // 不加这行的话小地图背景会变黑
         this.ctx.fillStyle = this.bg_color;
         this.ctx.fillRect(0, 0, this.width, this.height);
+        // 渲染小地图上的虚线框
         if (this.playground.focus_player) {
             this.rect_x1 = (this.playground.focus_player.x - this.playground.width / 2 / scale) / this.real_map_width * this.width;
             this.rect_y1 = (this.playground.focus_player.y - this.playground.height / 2 / scale) / this.real_map_width * this.height;
@@ -119,6 +122,7 @@ class MiniMap extends AcGameObject {
         this.ctx.lineWidth = Math.ceil(3 * scale / 1080);
         this.ctx.strokeRect(this.rect_x1, this.rect_y1, w, h);
         this.ctx.restore();
+        // 渲染小地图上的玩家
         for (let i = 0; i < this.players.length; i++) {
             let obj = this.players[i];
             // if (obj.character != "me" && !obj.visible) // 玩家不可见
