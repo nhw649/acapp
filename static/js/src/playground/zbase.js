@@ -1,3 +1,6 @@
+// 全局颜色变量
+let RANDOM_HEX = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'];
+
 class AcGamePlayground {
     constructor(root) {
         this.root = root;
@@ -10,9 +13,12 @@ class AcGamePlayground {
         this.start();
     }
 
-    get_random_color() {
-        let color = ["blue", "pink", "yellow", "red", "grey", "orange"];
-        return color[Math.floor(Math.random() * color.length)];
+    get_random_color() { // 随机获取颜色
+        let color = "#";
+        for (let i = 1; i <= 6; ++i) {
+            color += RANDOM_HEX[Math.floor(Math.random() * RANDOM_HEX.length)];
+        }
+        return color;
     }
 
     create_uuid() { // 创建一个8位随机的编号

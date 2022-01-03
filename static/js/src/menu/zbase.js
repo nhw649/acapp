@@ -73,7 +73,7 @@ class AcGameMenu {
         this.$success_toast = this.$menu.find(".ac-game-menu-success-toast");
         this.$collapse_message = this.$menu.find("#collapseMessage");
 
-        this.hide(); // 用户登录后才显示
+        this.hide(); // 用户登录后才显示菜单
         this.start();
     }
 
@@ -197,8 +197,9 @@ class AcGameMenu {
     show() {
         this.$menu.show(); // 显示菜单
         this.getMessage(); // 获取留言板数据
-
-        this.$message_board.show(); // 显示留言板
+        // 显示留言板(注意顺序)
+        this.$message_board.show();
+        this.$collapse_message.collapse('show');
 
         if (this.init_audio === "first") { // 第一次进入菜单则播放音乐
             $("audio")[0].play();
