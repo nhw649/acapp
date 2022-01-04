@@ -20,11 +20,12 @@ class Player extends AcGameObject {
         this.move_length = 0; // 保存两点之间的距离
         this.eps = 0.01; // 用来和移动距离进行比较
         this.spend_time = 5; // 倒计时
-        this.fireballs = []; // 存储每个玩家发的火球
+        this.skills = []; // 存储每个玩家技能
         this.cur_skill = null; // 存储技能
+        this.is_attack_iceball = false; // 标记是否被冰球击中
 
-        this.fireball_speed = 0.7; // 火球移动速度
-        this.fireball_move_length = 1.4; // 火球移动距离
+        this.ball_speed = 0.7; // 球类移动速度
+        this.ball_move_length = 1.4; // 球类移动距离
 
         this.max_hp = 100; // 最大血量
         this.hp = 100;
@@ -35,10 +36,14 @@ class Player extends AcGameObject {
 
         if (this.character === "me") { // 是自己才有冷却时间
             this.fireball_coldtime = 1; // 火球冷却时间
+            this.iceball_coldtime = 2; // 冰球冷却时间
             this.blink_coldtime = 3; // 闪现冷却时间
             // 创建技能图片
             this.fireball_img = new Image();
             this.fireball_img.src = "https://django-project.oss-cn-shanghai.aliyuncs.com/playground/skill/fireball.png";
+
+            this.iceball_img = new Image();
+            this.iceball_img.src = "https://game.gtimg.cn/images/lol/act/img/spell/NunuW.png";
 
             this.blink_img = new Image();
             this.blink_img.src = "https://django-project.oss-cn-shanghai.aliyuncs.com/playground/skill/blink.png";
@@ -73,28 +78,28 @@ class Player extends AcGameObject {
             this.difficult_mode = this.playground.root.difficult.difficult_mode;
             if (this.character === "me") {
                 if (this.difficult_mode === "easy") {
-                    this.fireball_speed = 0.7; // 火球移动速度
-                    this.fireball_move_length = 1.3; // 火球移动距离
+                    this.ball_speed = 0.7; // 球类技能移动速度
+                    this.ball_move_length = 1.3; // 球类技能移动距离
                 } else if (this.difficult_mode === "normal") {
-                    this.fireball_speed = 0.7; // 火球移动速度
-                    this.fireball_move_length = 1.4; // 火球移动距离
+                    this.ball_speed = 0.7;
+                    this.ball_move_length = 1.4;
                 } else if (this.difficult_mode === "hard") {
-                    this.fireball_speed = 0.8; // 火球移动速度
-                    this.fireball_move_length = 1.4; // 火球移动距离
+                    this.ball_speed = 0.8;
+                    this.ball_move_length = 1.4;
                 }
             } else if (this.character === "robot") {
                 if (this.difficult_mode === "easy") {
-                    this.fireball_speed = 0.6; // 火球移动速度
-                    this.fireball_move_length = 1.3; // 火球移动距离
+                    this.ball_speed = 0.6;
+                    this.ball_move_length = 1.3;
                     this.attack_frequency = 1 / 800; // 攻击频率
                 } else if (this.difficult_mode === "normal") {
-                    this.fireball_speed = 0.7; // 火球移动速度
-                    this.fireball_move_length = 1.4; // 火球移动距离
-                    this.attack_frequency = 1 / 400; // 攻击频率
+                    this.ball_speed = 0.7;
+                    this.ball_move_length = 1.4;
+                    this.attack_frequency = 1 / 400;
                 } else if (this.difficult_mode === "hard") {
-                    this.fireball_speed = 0.8; // 火球移动速度
-                    this.fireball_move_length = 1.5; // 火球移动距离
-                    this.attack_frequency = 1 / 200; // 攻击频率
+                    this.ball_speed = 0.8;
+                    this.ball_move_length = 1.5;
+                    this.attack_frequency = 1 / 200;
                 }
             }
         }
@@ -137,9 +142,16 @@ class Player extends AcGameObject {
                 if (this.cur_skill === "fireball") { // 火球技能
                     if (this.fireball_coldtime > 0) // 判断火球cd
                         return false;
-                    let fireball = this.shoot_fireball(tx, ty); // 函数会返回火球的uuid
+                    let fireball = this.shoot_ball(tx, ty, this.cur_skill); // 函数会返回火球的uuid
                     if (this.playground.mode === "multi mode") {
-                        this.playground.mps.send_shoot_fireball(tx, ty, fireball.uuid); // 向服务器发送发射火球消息
+                        this.playground.mps.send_shoot_ball(tx, ty, fireball.uuid, this.cur_skill); // 向服务器发送发射火球消息
+                    }
+                } else if (this.cur_skill === "iceball") { // 冰球技能
+                    if (this.iceball_coldtime > 0) // 冰球技能
+                        return false;
+                    let iceball = this.shoot_ball(tx, ty, this.cur_skill); // 函数会返回冰球的uuid
+                    if (this.playground.mode === "multi mode") {
+                        this.playground.mps.send_shoot_ball(tx, ty, iceball.uuid, this.cur_skill); // 向服务器发送发射冰球消息
                     }
                 }
             }
@@ -160,6 +172,13 @@ class Player extends AcGameObject {
                     return true; // 火球技能冷却中
                 this.cur_skill = "fireball";
                 return false;
+            } else if (e.which === 87) { // 护盾技能
+                console.log("护盾技能");
+            } else if (e.which === 69) { // 冰球技能
+                if (this.iceball_coldtime > 0)
+                    return true; // 冰球技能冷却中
+                this.cur_skill = "iceball";
+                return false;
             } else if (e.which === 70) { // 闪现技能
                 if (this.blink_coldtime > 0)
                     return true; // 闪现技能冷却中
@@ -169,28 +188,37 @@ class Player extends AcGameObject {
         })
     }
 
-    shoot_fireball(tx, ty) {
+    shoot_ball(tx, ty, cur_skill) {
         let x = this.x;
         let y = this.y;
         let radius = 0.01;
         let angle = Math.atan2(ty - this.y, tx - this.x);
         // let speed = 0.6;
-        let color = "orange";
+
         let vx = Math.cos(angle);
         let vy = Math.sin(angle);
-        // let move_length = 1.3; // 火球移动距离
-        // 创建火球
-        let fireball = new FireBall(this.playground, this, x, y, radius, vx, vy, color, this.fireball_speed, this.fireball_move_length, 0.0025);
-        this.fireballs.push(fireball);
-        this.fireball_coldtime = 1; // 重置火球cd
-        return fireball; // 便于获取火球的uuid
+        // let move_length = 1.3; // 移动距离
+
+        if (cur_skill === "fireball") { // 创建火球
+            let color = "orange";
+            let fireball = new Ball(this.playground, this, x, y, radius, vx, vy, color, this.ball_speed, this.ball_move_length, 0.0025, cur_skill);
+            this.skills.push(fireball);
+            this.fireball_coldtime = 1; // 重置火球cd
+            return fireball;
+        } else if (cur_skill === "iceball") { // 创建冰球
+            let color = "#4b8fe5";
+            let iceball = new Ball(this.playground, this, x, y, radius, vx, vy, color, this.ball_speed, this.ball_move_length, 0.0025, cur_skill);
+            this.skills.push(iceball);
+            this.iceball_coldtime = 2; // 重置冰球cd
+            return iceball;
+        }
     }
 
-    destroy_fireball(uuid) { // 删除火球
-        for (let i = 0; i < this.fireballs.length; i++) {
-            let fireball = this.fireballs[i];
-            if (fireball.uuid === uuid) {
-                fireball.destroy();
+    destroy_ball(uuid) { // 删除球类技能
+        for (let i = 0; i < this.skills.length; i++) {
+            let ball = this.skills[i];
+            if (ball.uuid === uuid) {
+                ball.destroy();
                 break;
             }
         }
@@ -216,38 +244,57 @@ class Player extends AcGameObject {
         this.vy = Math.sin(angle); // 单位y轴速度
     }
 
-    receive_attack(x, y, angle, damage, fireball_uuid, attacker) { // 收到攻击
-        attacker.destroy_fireball(fireball_uuid); // 删除攻击者发出的火球
+    receive_attack(x, y, angle, damage, ball_uuid, attacker, cur_skill) { // 收到攻击
+        attacker.destroy_ball(ball_uuid); // 删除攻击者发出的球类技能
         this.x = x;
         this.y = y;
-        this.is_attacked(angle, damage);
+        this.is_attacked(angle, damage, cur_skill);
     }
 
-    is_attacked(angle, damage) { // 被攻击触发效果
-        // 粒子效果
-        for (let i = 0; i < Math.random() * 10 + 10; i++) {
-            let x = this.x,
-                y = this.y;
-            let radius = this.radius * Math.random() * 0.5;
-            let color = this.color;
-            let angle = Math.PI * 2 * Math.random();
-            let vx = Math.cos(angle),
-                vy = Math.sin(angle);
-            let speed = this.speed * 6;
-            let move_length = this.radius * Math.random() * 3.5;
-            new Particle(this.playground, x, y, radius, color, vx, vy, speed, move_length);
+    is_attacked(angle, damage, cur_skill) { // 被攻击触发效果
+        if (cur_skill === "fireball") { // 火球技能才会有粒子效果
+            // 粒子效果
+            for (let i = 0; i < Math.random() * 10 + 10; i++) {
+                let x = this.x,
+                    y = this.y;
+                let radius = this.radius * Math.random() * 0.5;
+                let color = this.color;
+                let angle = Math.PI * 2 * Math.random();
+                let vx = Math.cos(angle),
+                    vy = Math.sin(angle);
+                let speed = this.speed * 6;
+                let move_length = this.radius * Math.random() * 3.5;
+                new Particle(this.playground, x, y, radius, color, vx, vy, speed, move_length);
+            }
+            this.radius -= damage * 0.5; // 玩家变小
+            this.hp -= 10; // 血量减少
+            if (this.hp <= 0) {
+                this.destroy(); // 玩家死亡
+                return false;
+            }
+            // 击退效果
+            this.damage_x = Math.cos(angle);
+            this.damage_y = Math.sin(angle);
+            this.damage_speed = damage * 350;
+            this.speed *= 0.98; // 血量减少移速变慢
+        } else if (cur_skill === "iceball") {
+            this.is_attack_iceball = true;
+            this.radius -= damage * 0.25; // 玩家变小
+            this.hp -= 5; // 血量减少
+            if (this.hp <= 0) {
+                this.destroy(); // 玩家死亡
+                return false;
+            }
+            // 击退效果
+            this.damage_x = Math.cos(angle);
+            this.damage_y = Math.sin(angle);
+            this.damage_speed = damage * 350;
+            this.speed *= 0.45; // 血量减少移速变慢
+            setTimeout(() => { // 2.5s后恢复移动速度
+                this.is_attack_iceball = false;
+                this.speed /= 0.45;
+            }, 2500);
         }
-        this.radius -= damage * 0.5; // 玩家变小
-        this.hp -= 10; // 血量减少
-        if (this.hp <= 0) {
-            this.destroy(); // 玩家死亡
-            return false;
-        }
-        // 击退效果
-        this.damage_x = Math.cos(angle);
-        this.damage_y = Math.sin(angle);
-        this.damage_speed = damage * 350;
-        this.speed *= 0.98; // 血量减少移速变慢
     }
 
     get_dist(x1, y1, x2, y2) { // 获取两点距离
@@ -327,8 +374,11 @@ class Player extends AcGameObject {
             this.fireball_coldtime -= this.timedelta / 1000;
             this.fireball_coldtime = Math.max(this.fireball_coldtime, 0); // 冷却时间最小为0
 
+            this.iceball_coldtime -= this.timedelta / 1000;
+            this.iceball_coldtime = Math.max(this.iceball_coldtime, 0);
+
             this.blink_coldtime -= this.timedelta / 1000;
-            this.blink_coldtime = Math.max(this.blink_coldtime, 0); // 冷却时间最小为0
+            this.blink_coldtime = Math.max(this.blink_coldtime, 0);
         }
     }
 
@@ -353,7 +403,9 @@ class Player extends AcGameObject {
             }
             let tx = player.x + this.vx * this.speed * this.timedelta / 1000 * 0.3; // 预估下一时刻玩家位置
             let ty = player.y + this.vy * this.speed * this.timedelta / 1000 * 0.3;
-            this.shoot_fireball(tx, ty);
+            // 随机触发火球或冰球技能
+            // 还未实现
+            this.shoot_ball(tx, ty, "fireball");
         }
     }
 
@@ -361,7 +413,7 @@ class Player extends AcGameObject {
         if (this.damage_speed > this.eps) {  // 击退时不受控制
             this.vx = this.vy = 0;
             this.move_length = 0; // 无法移动
-            this.cur_skill = null; // 击退时不能发射火球
+            this.cur_skill = null; // 击退时不能使用技能
             // 击退位移
             this.x += this.damage_x * this.damage_speed * this.timedelta / 1000;
             this.y += this.damage_y * this.damage_speed * this.timedelta / 1000;
@@ -434,11 +486,18 @@ class Player extends AcGameObject {
 
     render_skill_coldtime() { // 渲染技能
         let scale = this.playground.scale;
-        let x = 1.25, y = 0.9, r = 0.04;
+        let x = 1.13, y = 0.9, r = 0.04;
         // 渲染火球技能图片
         this.render_skill_photo(scale, x, y, r, this.fireball_img, "Q");
         // 渲染火球技能蒙板
         this.render_skill_mask(scale, x, y, r, this.fireball_coldtime, 1);
+
+        x = 1.25;
+        // 渲染冰球技能图片
+        this.render_skill_photo(scale, x, y, r, this.iceball_img, "E");
+        // 渲染冰球技能蒙板
+        this.render_skill_mask(scale, x, y, r, this.iceball_coldtime, 2);
+
         x = 1.37;
         // 渲染闪现技能图片
         this.render_skill_photo(scale, x, y, r, this.blink_img, "F");
@@ -446,7 +505,7 @@ class Player extends AcGameObject {
         this.render_skill_mask(scale, x, y, r, this.blink_coldtime, 3);
     }
 
-    render_hp(x, y, r, scale, color) {
+    render_hp(x, y, r, scale, color) { // 渲染血条
         let base_top_y = this.radius * 1.5 * scale; // 血条上边框
         let base_bottom_y = this.radius * 1.2 * scale; // 血条下边框
         let base_x = this.radius * 1.2 * scale; // 血条左右边框
@@ -472,7 +531,7 @@ class Player extends AcGameObject {
         // 已扣血量
         this.ctx.beginPath()
         this.ctx.rect(x + base_x, y - base_top_y, -((x + base_x) * ratio), this.radius * 0.3 * scale);
-        this.ctx.fillStyle = 'rgba(0,0,0,0)';
+        this.ctx.fillStyle = "rgba(0,0,0,0)";
         this.ctx.fill();
         this.ctx.closePath();
 
@@ -504,12 +563,16 @@ class Player extends AcGameObject {
 
         // 渲染玩家或机器人
         this.ctx.save(); // 保存canvas状态
-        this.ctx.strokeStyle = this.color; // 填充边框颜色
+        // this.ctx.strokeStyle = this.color; // 填充边框颜色
         this.ctx.beginPath();
         this.ctx.arc(ctx_x * scale, ctx_y * scale, this.radius * scale, 0, Math.PI * 2, false);
         this.ctx.stroke();
         this.ctx.clip();
         this.ctx.drawImage(this.img, (ctx_x - this.radius) * scale, (ctx_y - this.radius) * scale, this.radius * 2 * scale, this.radius * 2 * scale);
+        if (this.is_attack_iceball) { // 被冰球击中则加一层蓝色蒙版
+            this.ctx.fillStyle = "rgba(72, 149, 239, 0.4)";
+            this.ctx.fill();
+        }
         this.ctx.restore(); // 恢复canvas状态
 
         // 渲染玩家名

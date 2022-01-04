@@ -82,17 +82,18 @@ class MultiPlayer(AsyncWebsocketConsumer):
             }
         )
 
-    async def shoot_fireball(self, data):
+    async def shoot_ball(self, data):
         # 组内中发送消息
         await self.channel_layer.group_send(
             self.room_name,
             {
                 'type': 'group_send_event',  # 接收组内消息的函数名
-                'event': 'shoot_fireball',
+                'event': 'shoot_ball',
                 'uuid': data['uuid'],
                 'tx': data['tx'],
                 'ty': data['ty'],
-                'fireball_uuid': data['fireball_uuid']
+                'ball_uuid': data['ball_uuid'],
+                'cur_skill': data['cur_skill'],
             }
         )
 
@@ -128,7 +129,7 @@ class MultiPlayer(AsyncWebsocketConsumer):
                     await database_sync_to_async(db_update_player_score)(player['username'], -50)
                 else:  # 胜利加100分
                     await database_sync_to_async(db_update_player_score)(player['username'], 100)
-            cache.delete(self.room_name) # 游戏结束清除该房间
+            cache.delete(self.room_name)  # 游戏结束清除该房间
 
         # 组内中发送消息
         await self.channel_layer.group_send(
@@ -142,7 +143,8 @@ class MultiPlayer(AsyncWebsocketConsumer):
                 'y': data['y'],
                 'angle': data['angle'],
                 'damage': data['damage'],
-                'fireball_uuid': data['fireball_uuid']
+                'ball_uuid': data['ball_uuid'],
+                'cur_skill': data['cur_skill'],
             }
         )
 
@@ -193,8 +195,8 @@ class MultiPlayer(AsyncWebsocketConsumer):
         #     await self.remove_player(data)
         elif event == 'move_to':
             await self.move_to(data)
-        elif event == 'shoot_fireball':
-            await self.shoot_fireball(data)
+        elif event == 'shoot_ball':
+            await self.shoot_ball(data)
         elif event == 'attack':
             await self.attack(data)
         elif event == 'blink':

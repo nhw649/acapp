@@ -67,11 +67,11 @@ class FireBall extends AcGameObject {
 
     attacked(player) {
         let angle = Math.atan2(player.y - this.y, player.x - this.x); // 确定被攻击后退的方向
-        player.is_attacked(angle, this.damage); // 被攻击了
+        player.is_attacked(angle, this.damage, "fireball"); // 被攻击了
 
         if (this.playground.mode === "multi mode") {
             // 向服务器发送攻击消息
-            this.playground.mps.send_attack(player.uuid, player.x, player.y, angle, this.damage, this.uuid);
+            this.playground.mps.send_attack(player.uuid, player.x, player.y, angle, this.damage, this.uuid, "fireball");
         }
 
         this.destroy(); // 火球消失
@@ -93,10 +93,10 @@ class FireBall extends AcGameObject {
     }
 
     on_destroy() { // 删除火球前需要从火球列表中删除
-        let fireballs = this.player.fireballs;
-        for (let i = 0; i < fireballs.length; i++) {
-            if (fireballs[i] === this) {
-                fireballs.splice(i, 1);
+        let skills = this.player.skills;
+        for (let i = 0; i < skills.length; i++) {
+            if (skills[i] === this) {
+                skills.splice(i, 1);
                 break;
             }
         }
