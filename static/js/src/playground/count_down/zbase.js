@@ -4,6 +4,7 @@ class CountDown extends AcGameObject {
         this.playground = playground;
         this.ctx = this.playground.game_map.ctx; // 获取画笔对象
         this.text = "5"; // 倒计时文字
+        this.is_over = false;
     }
 
     start() {

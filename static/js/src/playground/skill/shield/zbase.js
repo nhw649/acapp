@@ -6,7 +6,7 @@ class Shield extends AcGameObject {
         this.player = player;
         this.color = color;
         this.shield_pass_time = 0; // 护盾经过时间
-        this.shield_duration_time = 5; // 护盾总持续时间
+        this.shield_duration_time = 3; // 护盾总持续时间
     }
 
     start() {

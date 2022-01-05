@@ -36,10 +36,11 @@ class Player extends AcGameObject {
         this.img.src = this.photo || "https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fae01.alicdn.com%2Fkf%2FH544f69316f7941e0aa8e16ddb0957367F.jpg&refer=http%3A%2F%2Fae01.alicdn.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1643330881&t=6141465282424729b082d7b3f5e29b89";
 
         if (this.character === "me") { // 是自己才有冷却时间
-            this.fireball_coldtime = 1; // 火球冷却时间
-            this.shield_coldtime = 6; // 护盾冷却时间
-            this.iceball_coldtime = 2; // 冰球冷却时间
-            this.blink_coldtime = 4; // 闪现冷却时间
+            // 一开始便可以释放技能
+            this.fireball_coldtime = 0; // 火球冷却时间
+            this.shield_coldtime = 0; // 护盾冷却时间
+            this.iceball_coldtime = 0; // 冰球冷却时间
+            this.blink_coldtime = 0; // 闪现冷却时间
             // 创建技能图片
             this.fireball_img = new Image();
             this.fireball_img.src = "https://game.gtimg.cn/images/lol/act/img/spell/AnnieQ.png";
@@ -115,7 +116,9 @@ class Player extends AcGameObject {
         this.playground.game_map.$canvas.mousedown((e) => {
             if (this.playground.state !== "fighting")
                 return false; // 非战斗中不能移动和使用技能
-
+            if (!this.playground.count_down.is_over) { // 倒计时未结束仅能移动,不能使用技能
+                this.cur_skill = null;
+            }
             const rect = this.ctx.canvas.getBoundingClientRect(); // 返回元素的大小及其相对于视口的位置
             // 鼠标按下位置相对于浏览器的位置
             let tx = (e.clientX - rect.left) / this.playground.scale + this.playground.cx;
@@ -176,10 +179,10 @@ class Player extends AcGameObject {
                 this.cur_skill = "fireball";
                 return false;
             } else if (e.which === 87) { // 护盾技能
-                if (this.shield_coldtime > 0)
-                    return true; // 护盾技能冷却中
+                if (this.shield_coldtime > 0 || !this.playground.count_down.is_over)
+                    return true; // 护盾技能冷却中或倒计时未结束
                 this.is_shield = true;
-                this.shield_coldtime = 6;
+                this.shield_coldtime = 10;
                 new Shield(this.playground, this, "silver");
                 if (this.playground.mode === "multi mode") {
                     this.playground.mps.send_shield(this.is_shield); // 向服务器发送玩家护盾技能消息
@@ -349,6 +352,7 @@ class Player extends AcGameObject {
             this.playground.count_down.write(Math.ceil(this.spend_time)); // 修改倒计时文字
         } else { // 倒计时结束删除文字
             this.playground.count_down.destroy();
+            this.playground.count_down.is_over = true;
         }
         this.spend_time -= this.timedelta / 1000; // 倒计时计时器
     }
@@ -515,7 +519,7 @@ class Player extends AcGameObject {
         // 渲染护盾技能图片
         this.render_skill_photo(scale, x, y, r, this.shield_img, "W");
         // 渲染护盾技能蒙板
-        this.render_skill_mask(scale, x, y, r, this.shield_coldtime, 6);
+        this.render_skill_mask(scale, x, y, r, this.shield_coldtime, 10);
 
         x = 1.26;
         // 渲染冰球技能图片
