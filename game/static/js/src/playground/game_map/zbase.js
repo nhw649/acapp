@@ -2,7 +2,7 @@ class GameMap extends AcGameObject {
     constructor(playground) {
         super(); // 相当于将自己注册到了AC_GAME_OBJECTS数组中
         this.playground = playground;
-        this.$canvas = $(`<canvas tabindex=0 class="game-map">你的浏览器居然不支持Canvas?赶快换一个吧!!</canvas>`); // 创建canvas,tabindex="0"表示元素是可聚焦的
+        this.$canvas = $(`<canvas class="game-map" tabindex=0>你的浏览器居然不支持Canvas?赶快换一个吧!!</canvas>`); // 创建canvas,tabindex="0"表示元素是可聚焦的
         this.ctx = this.$canvas[0].getContext("2d"); // 创建context对象
         this.ctx.canvas.width = this.playground.width; // 设置canvas的宽度
         this.ctx.canvas.height = this.playground.height; // 设置canvas的高度

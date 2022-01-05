@@ -45,7 +45,7 @@ class Ball extends AcGameObject {
         for (let i = 0; i < this.playground.players.length; i++) {
             let player = this.playground.players[i];
             if (player !== this.player && this.is_collision(player)) {
-                // 球类攻击到AI了
+                // 球类攻击到玩家了
                 this.attacked(player);
                 break; // 只会攻击一个玩家
             }
@@ -59,8 +59,21 @@ class Ball extends AcGameObject {
     }
 
     is_collision(player) { // 球类是否与玩家相撞
-        let distance = this.get_dist(this.x, this.y, player.x, player.y);
-        if (distance < (player.radius + this.radius)) { // 两点间距离小于半径之和即被攻击到了
+        this.distance = this.get_dist(this.x, this.y, player.x, player.y);
+
+        // 护盾保护,不受攻击
+        if (player.is_shield) {
+            if (this.distance < 4 * player.radius && this.distance > 3.5 * player.radius) { // 护盾范围内
+                this.destroy(); // 删除该火球
+                if (this.playground.mode === "multi mode") {
+                    // 向服务器发送删除火球消息(this.player是攻击者,player是被攻击者,this是火球)
+                    this.playground.mps.send_destroy_ball(this.player.uuid, player.uuid, this.uuid);
+                }
+                return false;
+            }
+        }
+
+        if (this.distance < (player.radius + this.radius)) { // 两点间距离小于半径之和即被攻击到了
             return true;
         }
         return false;

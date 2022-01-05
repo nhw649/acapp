@@ -22,6 +22,7 @@ class Player extends AcGameObject {
         this.spend_time = 5; // 倒计时
         this.skills = []; // 存储每个玩家技能
         this.cur_skill = null; // 存储技能
+        this.is_shield = false; // 标记是否使用护盾技能
         this.is_attack_iceball = false; // 标记是否被冰球击中
 
         this.ball_speed = 0.7; // 球类移动速度
@@ -36,11 +37,16 @@ class Player extends AcGameObject {
 
         if (this.character === "me") { // 是自己才有冷却时间
             this.fireball_coldtime = 1; // 火球冷却时间
+            this.shield_coldtime = 6; // 护盾冷却时间
             this.iceball_coldtime = 2; // 冰球冷却时间
-            this.blink_coldtime = 3; // 闪现冷却时间
+            this.blink_coldtime = 4; // 闪现冷却时间
             // 创建技能图片
             this.fireball_img = new Image();
-            this.fireball_img.src = "https://django-project.oss-cn-shanghai.aliyuncs.com/playground/skill/fireball.png";
+            this.fireball_img.src = "https://game.gtimg.cn/images/lol/act/img/spell/AnnieQ.png";
+
+            this.shield_img = new Image();
+            this.shield_img.src = "https://game.gtimg.cn/images/lol/act/img/spell/MorganaE.png";
+            // this.shield_img.src = "https://game.gtimg.cn/images/lol/act/img/spell/JarvanIVGoldenAegis.png";
 
             this.iceball_img = new Image();
             this.iceball_img.src = "https://game.gtimg.cn/images/lol/act/img/spell/NunuW.png";
@@ -121,8 +127,6 @@ class Player extends AcGameObject {
                 for (let i = 0; i < 20; i++) { // 右键点击粒子效果
                     new ClickParticle(this.playground, tx, ty, "rgb(74,149,58)");
                 }
-                // let tx = (e.clientX - rect.left) / this.playground.scale;
-                // let ty = (e.clientY - rect.top) / this.playground.scale;
                 this.move_to(tx, ty);
                 if (this.playground.mode === "multi mode") {
                     this.playground.mps.send_move_to(tx, ty) // 向服务器发送玩家移动消息
@@ -137,8 +141,6 @@ class Player extends AcGameObject {
                     }
                 }
             } else if (e.which === 1) { // 左键发射技能
-                // let tx = (e.clientX - rect.left) / this.playground.scale;
-                // let ty = (e.clientY - rect.top) / this.playground.scale;
                 if (this.cur_skill === "fireball") { // 火球技能
                     if (this.fireball_coldtime > 0) // 判断火球cd
                         return false;
@@ -146,6 +148,7 @@ class Player extends AcGameObject {
                     if (this.playground.mode === "multi mode") {
                         this.playground.mps.send_shoot_ball(tx, ty, fireball.uuid, this.cur_skill); // 向服务器发送发射火球消息
                     }
+                    this.cur_skill = null; // 清空技能
                 } else if (this.cur_skill === "iceball") { // 冰球技能
                     if (this.iceball_coldtime > 0) // 冰球技能
                         return false;
@@ -153,9 +156,9 @@ class Player extends AcGameObject {
                     if (this.playground.mode === "multi mode") {
                         this.playground.mps.send_shoot_ball(tx, ty, iceball.uuid, this.cur_skill); // 向服务器发送发射冰球消息
                     }
+                    this.cur_skill = null; // 清空技能
                 }
             }
-            this.cur_skill = null; // 清空技能
         })
 
         this.playground.game_map.$canvas.keydown((e) => { // 绑定到canvas上,不会触发其他窗口的键盘事件
@@ -173,7 +176,15 @@ class Player extends AcGameObject {
                 this.cur_skill = "fireball";
                 return false;
             } else if (e.which === 87) { // 护盾技能
-                console.log("护盾技能");
+                if (this.shield_coldtime > 0)
+                    return true; // 护盾技能冷却中
+                this.is_shield = true;
+                this.shield_coldtime = 6;
+                new Shield(this.playground, this, "silver");
+                if (this.playground.mode === "multi mode") {
+                    this.playground.mps.send_shield(this.is_shield); // 向服务器发送玩家护盾技能消息
+                }
+                return false;
             } else if (e.which === 69) { // 冰球技能
                 if (this.iceball_coldtime > 0)
                     return true; // 冰球技能冷却中
@@ -193,11 +204,9 @@ class Player extends AcGameObject {
         let y = this.y;
         let radius = 0.01;
         let angle = Math.atan2(ty - this.y, tx - this.x);
-        // let speed = 0.6;
 
         let vx = Math.cos(angle);
         let vy = Math.sin(angle);
-        // let move_length = 1.3; // 移动距离
 
         if (cur_skill === "fireball") { // 创建火球
             let color = "orange";
@@ -225,16 +234,16 @@ class Player extends AcGameObject {
     }
 
     blink(tx, ty) { // 闪现技能
+        if (this.character === "me") {
+            this.blink_coldtime = 3; // 重置闪现cd
+            // this.move_length = 0; // 闪现完停止移动
+        }
         let d = this.get_dist(this.x, this.y, tx, ty); // 获取需要的闪现距离
         d = Math.min(d, 0.4); // 闪现最大距离为0.4
         let angle = Math.atan2(ty - this.y, tx - this.x); // 闪现角度
         this.x += d * Math.cos(angle);
         this.y += d * Math.sin(angle);
-        if (this.character !== "robot") {
-            this.blink_coldtime = 3; // 重置闪现cd
-            // this.move_length = 0; // 闪现完停止移动
-            this.move_length -= d;
-        }
+        this.move_length -= d;
     }
 
     move_to(tx, ty) {
@@ -246,9 +255,14 @@ class Player extends AcGameObject {
 
     receive_attack(x, y, angle, damage, ball_uuid, attacker, cur_skill) { // 收到攻击
         attacker.destroy_ball(ball_uuid); // 删除攻击者发出的球类技能
+        // 同步被攻击者的坐标
         this.x = x;
         this.y = y;
         this.is_attacked(angle, damage, cur_skill);
+    }
+
+    receive_destroy_ball(attacker, ball_uuid) {
+        attacker.destroy_ball(ball_uuid); // 删除攻击者发出的球类技能
     }
 
     is_attacked(angle, damage, cur_skill) { // 被攻击触发效果
@@ -377,6 +391,9 @@ class Player extends AcGameObject {
             this.iceball_coldtime -= this.timedelta / 1000;
             this.iceball_coldtime = Math.max(this.iceball_coldtime, 0);
 
+            this.shield_coldtime -= this.timedelta / 1000;
+            this.shield_coldtime = Math.max(this.shield_coldtime, 0);
+
             this.blink_coldtime -= this.timedelta / 1000;
             this.blink_coldtime = Math.max(this.blink_coldtime, 0);
         }
@@ -387,7 +404,7 @@ class Player extends AcGameObject {
         let ty = Math.random() * this.playground.virtual_map_height;
         this.move_to(tx, ty);
         // 机器人闪现
-        if (this.spend_time <= 0 && Math.random() < 0.15) { // 0.2是闪现频率的
+        if (this.spend_time <= 0 && Math.random() < 0.15) { // 0.15是闪现频率
             this.blink(tx, ty);
         }
     }
@@ -404,7 +421,9 @@ class Player extends AcGameObject {
             let tx = player.x + this.vx * this.speed * this.timedelta / 1000 * 0.3; // 预估下一时刻玩家位置
             let ty = player.y + this.vy * this.speed * this.timedelta / 1000 * 0.3;
             // 随机触发火球或冰球技能
-            // 还未实现
+            // setTimeout(() => {
+            //     this.shoot_ball(tx, ty, "iceball");
+            // }, 2000);
             this.shoot_ball(tx, ty, "fireball");
         }
     }
@@ -486,13 +505,19 @@ class Player extends AcGameObject {
 
     render_skill_coldtime() { // 渲染技能
         let scale = this.playground.scale;
-        let x = 1.13, y = 0.9, r = 0.04;
+        let x = 1.04, y = 0.9, r = 0.04;
         // 渲染火球技能图片
         this.render_skill_photo(scale, x, y, r, this.fireball_img, "Q");
         // 渲染火球技能蒙板
         this.render_skill_mask(scale, x, y, r, this.fireball_coldtime, 1);
 
-        x = 1.25;
+        x = 1.15;
+        // 渲染护盾技能图片
+        this.render_skill_photo(scale, x, y, r, this.shield_img, "W");
+        // 渲染护盾技能蒙板
+        this.render_skill_mask(scale, x, y, r, this.shield_coldtime, 6);
+
+        x = 1.26;
         // 渲染冰球技能图片
         this.render_skill_photo(scale, x, y, r, this.iceball_img, "E");
         // 渲染冰球技能蒙板
@@ -502,7 +527,7 @@ class Player extends AcGameObject {
         // 渲染闪现技能图片
         this.render_skill_photo(scale, x, y, r, this.blink_img, "F");
         // 渲染闪现技能蒙板
-        this.render_skill_mask(scale, x, y, r, this.blink_coldtime, 3);
+        this.render_skill_mask(scale, x, y, r, this.blink_coldtime, 4);
     }
 
     render_hp(x, y, r, scale, color) { // 渲染血条

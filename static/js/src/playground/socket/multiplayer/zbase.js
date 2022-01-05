@@ -20,6 +20,17 @@ class MultiPlayerSocket {
         return null;
     }
 
+    // get_ball(uuid, player) {
+    //     let balls = player.skills;
+    //     for (let i = 0; i < balls.length; i++) {
+    //         let ball = balls[i];
+    //         if (ball.uuid === uuid) {
+    //             return ball;
+    //         }
+    //     }
+    //     return null;
+    // }
+
     receive() {
         this.ws.onmessage = ((e) => { // 接收服务器发送的消息
             let data = JSON.parse(e.data);
@@ -37,6 +48,10 @@ class MultiPlayerSocket {
                 this.receive_shoot_ball(uuid, data.tx, data.ty, data.ball_uuid, data.cur_skill);
             } else if (event === "attack") {
                 this.receive_attack(uuid, data.attackee_uuid, data.x, data.y, data.angle, data.damage, data.ball_uuid, data.cur_skill);
+            } else if (event === "destroy_ball") {
+                this.receive_destroy_ball(uuid, data.attackee_uuid, data.ball_uuid);
+            } else if (event === "shield") {
+                this.receive_shield(uuid, data.is_shield);
             } else if (event === "blink") {
                 this.receive_blink(uuid, data.tx, data.ty);
             } else if (event === "message") {
@@ -130,8 +145,44 @@ class MultiPlayerSocket {
     receive_attack(uuid, attackee_uuid, x, y, angle, damage, ball_uuid, cur_skill) { // 处理攻击消息
         let attacker = this.get_player(uuid);
         let attackee = this.get_player(attackee_uuid);
+
         if (attacker && attackee) {
             attackee.receive_attack(x, y, angle, damage, ball_uuid, attacker, cur_skill)
+        }
+    }
+
+    send_destroy_ball(uuid, attackee_uuid, ball_uuid) {
+        let outer = this;
+        this.ws.send(JSON.stringify({
+            'event': 'destroy_ball',
+            'uuid': outer.uuid,
+            'attackee_uuid': attackee_uuid,
+            'ball_uuid': ball_uuid,
+        }))
+    }
+
+    receive_destroy_ball(uuid, attackee_uuid, ball_uuid) {
+        let attacker = this.get_player(uuid);
+        let attackee = this.get_player(attackee_uuid);
+        if (attacker && attackee) {
+            attackee.receive_destroy_ball(attacker, ball_uuid); // 删除被攻击者的火球
+        }
+    }
+
+    send_shield(is_shield) {
+        let outer = this;
+        this.ws.send(JSON.stringify({
+            'event': 'shield',
+            'uuid': outer.uuid,
+            'is_shield': is_shield,
+        }))
+    }
+
+    receive_shield(uuid, is_shield) {
+        let player = this.get_player(uuid);
+        if (player) {
+            player.is_shield = is_shield;
+            new Shield(this.playground, player, "silver");
         }
     }
 

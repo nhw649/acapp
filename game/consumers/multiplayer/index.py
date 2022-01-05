@@ -87,7 +87,7 @@ class MultiPlayer(AsyncWebsocketConsumer):
         await self.channel_layer.group_send(
             self.room_name,
             {
-                'type': 'group_send_event',  # 接收组内消息的函数名
+                'type': 'group_send_event',
                 'event': 'shoot_ball',
                 'uuid': data['uuid'],
                 'tx': data['tx'],
@@ -108,7 +108,10 @@ class MultiPlayer(AsyncWebsocketConsumer):
 
         for player in players:
             if player['uuid'] == data['attackee_uuid']:  # 匹配被攻击者uuid
-                player['hp'] -= 10
+                if data['cur_skill'] == 'fireball':
+                    player['hp'] -= 10
+                elif data['cur_skill'] == 'iceball':
+                    player['hp'] -= 5
 
         remain_cnt = 0  # 剩余玩家数量
         for player in players:
@@ -135,7 +138,7 @@ class MultiPlayer(AsyncWebsocketConsumer):
         await self.channel_layer.group_send(
             self.room_name,
             {
-                'type': 'group_send_event',  # 接收组内消息的函数名
+                'type': 'group_send_event',
                 'event': 'attack',
                 'uuid': data['uuid'],
                 'attackee_uuid': data['attackee_uuid'],
@@ -148,12 +151,37 @@ class MultiPlayer(AsyncWebsocketConsumer):
             }
         )
 
+    async def destroy_ball(self, data):
+        # 组内中发送消息
+        await self.channel_layer.group_send(
+            self.room_name,
+            {
+                'type': 'group_send_event',
+                'event': 'destroy_ball',
+                'uuid': data['uuid'],
+                'attackee_uuid': data['attackee_uuid'],
+                'ball_uuid': data['ball_uuid'],
+            }
+        )
+
+    async def shield(self, data):
+        # 组内中发送消息
+        await self.channel_layer.group_send(
+            self.room_name,
+            {
+                'type': 'group_send_event',
+                'event': 'shield',
+                'uuid': data['uuid'],
+                'is_shield': data['is_shield'],
+            }
+        )
+
     async def blink(self, data):
         # 组内中发送消息
         await self.channel_layer.group_send(
             self.room_name,
             {
-                'type': 'group_send_event',  # 接收组内消息的函数名
+                'type': 'group_send_event',
                 'event': 'blink',
                 'uuid': data['uuid'],
                 'tx': data['tx'],
@@ -168,7 +196,7 @@ class MultiPlayer(AsyncWebsocketConsumer):
         await self.channel_layer.group_send(
             self.room_name,
             {
-                'type': 'group_send_event',  # 接收组内消息的函数名
+                'type': 'group_send_event',
                 'event': 'message',
                 'uuid': data['uuid'],
                 'username': data['username'],
@@ -199,6 +227,10 @@ class MultiPlayer(AsyncWebsocketConsumer):
             await self.shoot_ball(data)
         elif event == 'attack':
             await self.attack(data)
+        elif event == "destroy_ball":
+            await self.destroy_ball(data)
+        elif event == 'shield':
+            await self.shield(data)
         elif event == 'blink':
             await self.blink(data)
         elif event == 'message':
