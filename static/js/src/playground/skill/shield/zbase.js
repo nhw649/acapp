@@ -1,10 +1,9 @@
 class Shield extends AcGameObject {
-    constructor(playground, player, color) {
+    constructor(playground, player) {
         super();
         this.playground = playground;
         this.ctx = this.playground.game_map.ctx;
         this.player = player;
-        this.color = color;
         this.shield_pass_time = 0; // 护盾经过时间
         this.shield_duration_time = 3; // 护盾总持续时间
     }
@@ -28,11 +27,16 @@ class Shield extends AcGameObject {
 
         // 渲染护盾
         if (this.player.is_shield && this.shield_pass_time <= this.shield_duration_time) { // 护盾持续3s
+            let r1 = this.player.radius * 3.0 * scale;
+            let r2 = this.player.radius * 3.5 * scale
             this.shield_pass_time += this.player.timedelta / 1000;
             this.ctx.beginPath();
-            this.ctx.arc(ctx_x * scale, ctx_y * scale, this.player.radius * 3.9 * scale, 0, Math.PI * 2);
-            this.ctx.arc(ctx_x * scale, ctx_y * scale, this.player.radius * 4.0 * scale, 0, Math.PI * 2, true);
-            this.ctx.fillStyle = this.color;
+            this.ctx.arc(ctx_x * scale, ctx_y * scale, r1, 0, Math.PI * 2);
+            this.ctx.arc(ctx_x * scale, ctx_y * scale, r2, 0, Math.PI * 2, true);
+            var gradient = this.ctx.createRadialGradient(ctx_x * scale, ctx_y * scale, r1, ctx_x * scale, ctx_y * scale, r2);
+            gradient.addColorStop(0, "#5587bb");                  //定义渐变色颜色
+            gradient.addColorStop(1, "#bc3acf");
+            this.ctx.fillStyle = gradient;
             this.ctx.fill();
         } else if (this.player.is_shield && this.shield_pass_time > this.shield_duration_time) {
             this.player.is_shield = false;

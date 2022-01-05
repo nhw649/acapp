@@ -182,7 +182,7 @@ class MultiPlayerSocket {
         let player = this.get_player(uuid);
         if (player) {
             player.is_shield = is_shield;
-            new Shield(this.playground, player, "silver");
+            new Shield(this.playground, player);
         }
     }
 

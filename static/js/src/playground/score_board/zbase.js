@@ -37,9 +37,9 @@ class ScoreBoard extends AcGameObject {
             });
         }
 
-        this.timerId = setTimeout(() => { // 2s后失败图片消失
+        this.timerId = setTimeout(() => { // 3s后失败图片消失
             this.close_draw_img = true;
-        }, 2000);
+        }, 3000);
     }
 
     win() {
@@ -68,7 +68,7 @@ class ScoreBoard extends AcGameObject {
             this.ctx.drawImage(this.win_img, this.playground.width / 2 - len / 2, this.playground.height / 2 - len / 2, len, len); // 渲染失败图片
             this.render_back(scale);
         } else if (this.state === "lose") {
-            if (!this.close_draw_img) { // 渲染2s的失败图片,随即观战画面
+            if (!this.close_draw_img) { // 渲染3s的失败图片,随即观战画面
                 this.ctx.drawImage(this.lose_img, this.playground.width / 2 - len / 2, this.playground.height / 2 - len / 2, len, len); // 渲染失败图片
             }
             this.render_back(scale);

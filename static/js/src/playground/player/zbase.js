@@ -180,10 +180,10 @@ class Player extends AcGameObject {
                 return false;
             } else if (e.which === 87) { // 护盾技能
                 if (this.shield_coldtime > 0 || !this.playground.count_down.is_over)
-                    return true; // 护盾技能冷却中
+                    return true; // 护盾技能冷却中或倒计时未结束
                 this.is_shield = true;
                 this.shield_coldtime = 10;
-                new Shield(this.playground, this, "silver");
+                new Shield(this.playground, this);
                 if (this.playground.mode === "multi mode") {
                     this.playground.mps.send_shield(this.is_shield); // 向服务器发送玩家护盾技能消息
                 }
@@ -479,20 +479,14 @@ class Player extends AcGameObject {
         }
     }
 
-    render_skill_photo(scale, x, y, r, img, text) { // 渲染技能图片
+    render_skill_photo(scale, x, y, r, img) { // 渲染技能图片
         this.ctx.save();
         this.ctx.beginPath();
         this.ctx.arc(x * scale, y * scale, r * scale, 0, Math.PI * 2, false);
         this.ctx.stroke();
         this.ctx.clip();
         this.ctx.drawImage(img, (x - r) * scale, (y - r) * scale, r * 2 * scale, r * 2 * scale);
-        // 渲染技能按键提示文字
-        this.ctx.font = "bold 25px Arial";
-        this.ctx.fillStyle = "white"
-        this.ctx.textBaseline = "middle";
-        this.ctx.fillText(text, x * scale, y * scale * 1.02);
-        this.ctx.restore();
-        this.ctx.text
+        this.ctx.restore(); // 恢复canvas状态
     }
 
     render_skill_mask(scale, x, y, r, coldtime, init_coldtime) { // 渲染技能蒙板
@@ -504,32 +498,55 @@ class Player extends AcGameObject {
             this.ctx.lineTo(x * scale, y * scale);
             this.ctx.fillStyle = "rgba(0,0,0,0.5)";
             this.ctx.fill();
+
+            // 渲染技能冷却时间
+            this.ctx.font = "bold 26px Arial";
+            this.ctx.fillStyle = "white";
+            this.ctx.textBaseline = "middle";
+            this.ctx.fillText(Math.ceil(coldtime), x * scale, y * scale);
         }
+    }
+
+    render_skill_keyboard(scale, x, y, text) { // 渲染技能按键提示
+        this.ctx.save();
+        this.ctx.beginPath();
+        this.ctx.font = "bold 20px Arial";
+        this.ctx.fillStyle = "white"
+        this.ctx.textBaseline = "middle";
+        this.ctx.fillText(text, x * scale, y * scale * 1.07);
     }
 
     render_skill_coldtime() { // 渲染技能
         let scale = this.playground.scale;
         let x = 1.04, y = 0.9, r = 0.04;
         // 渲染火球技能图片
-        this.render_skill_photo(scale, x, y, r, this.fireball_img, "Q");
+        this.render_skill_photo(scale, x, y, r, this.fireball_img);
+        // 渲染火球技能按键提示
+        this.render_skill_keyboard(scale, x, y, "Q");
         // 渲染火球技能蒙板
         this.render_skill_mask(scale, x, y, r, this.fireball_coldtime, 1);
 
         x = 1.15;
         // 渲染护盾技能图片
-        this.render_skill_photo(scale, x, y, r, this.shield_img, "W");
+        this.render_skill_photo(scale, x, y, r, this.shield_img);
+        // 渲染护盾技能按键提示
+        this.render_skill_keyboard(scale, x, y, "W");
         // 渲染护盾技能蒙板
         this.render_skill_mask(scale, x, y, r, this.shield_coldtime, 10);
 
         x = 1.26;
         // 渲染冰球技能图片
-        this.render_skill_photo(scale, x, y, r, this.iceball_img, "E");
+        this.render_skill_photo(scale, x, y, r, this.iceball_img);
+        // 渲染冰球技能按键提示
+        this.render_skill_keyboard(scale, x, y, "E");
         // 渲染冰球技能蒙板
         this.render_skill_mask(scale, x, y, r, this.iceball_coldtime, 2);
 
         x = 1.37;
         // 渲染闪现技能图片
-        this.render_skill_photo(scale, x, y, r, this.blink_img, "F");
+        this.render_skill_photo(scale, x, y, r, this.blink_img);
+        // 渲染闪现技能按键提示
+        this.render_skill_keyboard(scale, x, y, "F");
         // 渲染闪现技能蒙板
         this.render_skill_mask(scale, x, y, r, this.blink_coldtime, 4);
     }
