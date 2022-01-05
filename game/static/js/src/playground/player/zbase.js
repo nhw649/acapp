@@ -142,6 +142,7 @@ class Player extends AcGameObject {
                     if (this.playground.mode === "multi mode") {
                         this.playground.mps.send_blink(tx, ty);
                     }
+                    this.cur_skill = null; // 清空技能
                 }
             } else if (e.which === 1) { // 左键发射技能
                 if (this.cur_skill === "fireball") { // 火球技能
