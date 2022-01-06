@@ -50,13 +50,12 @@ class Player extends AcGameObject {
 
             this.shield_img = new Image();
             this.shield_img.src = "https://game.gtimg.cn/images/lol/act/img/spell/MorganaE.png";
-            // this.shield_img.src = "https://game.gtimg.cn/images/lol/act/img/spell/JarvanIVGoldenAegis.png";
 
             this.iceball_img = new Image();
             this.iceball_img.src = "https://game.gtimg.cn/images/lol/act/img/spell/NunuW.png";
 
             this.blink_img = new Image();
-            this.blink_img.src = "https://django-project.oss-cn-shanghai.aliyuncs.com/playground/skill/blink.png";
+            this.blink_img.src = "https://django-acapp.oss-cn-beijing.aliyuncs.com/playground/skill/blink.png";
         }
     }
 
