@@ -42,6 +42,7 @@ class Shield extends AcGameObject {
         } else if (this.player.is_shield && this.shield_pass_time > this.shield_duration_time) {
             this.player.is_shield = false;
             this.destroy(); // 护盾消失
+
         }
     }
 }

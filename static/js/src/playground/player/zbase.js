@@ -1,3 +1,6 @@
+// 机器人随机技能列表
+let RANDOM_SKILL_LIST = ["fireball", "iceball"];
+
 class Player extends AcGameObject {
     constructor(playground, x, y, radius, color, speed, character, username, photo) {
         super();
@@ -184,7 +187,7 @@ class Player extends AcGameObject {
                     return true; // 护盾技能冷却中或倒计时未结束
                 this.is_shield = true;
                 this.shield_coldtime = 10;
-                new Shield(this.playground, this);
+                new Shield(this.playground, this); // 创建护盾
                 if (this.playground.mode === "multi mode") {
                     this.playground.mps.send_shield(this.is_shield); // 向服务器发送玩家护盾技能消息
                 }
@@ -425,11 +428,9 @@ class Player extends AcGameObject {
             }
             let tx = player.x + this.vx * this.speed * this.timedelta / 1000 * 0.3; // 预估下一时刻玩家位置
             let ty = player.y + this.vy * this.speed * this.timedelta / 1000 * 0.3;
-            // 随机触发火球或冰球技能
-            // setTimeout(() => {
-            //     this.shoot_ball(tx, ty, "iceball");
-            // }, 2000);
-            this.shoot_ball(tx, ty, "fireball");
+            // 随机触发技能
+            let random_skill = RANDOM_SKILL_LIST[Math.floor(Math.random() * RANDOM_SKILL_LIST.length)];
+            this.shoot_ball(tx, ty, random_skill);
         }
     }
 
@@ -509,8 +510,6 @@ class Player extends AcGameObject {
     }
 
     render_skill_keyboard(scale, x, y, text) { // 渲染技能按键提示
-        this.ctx.save();
-        this.ctx.beginPath();
         this.ctx.font = "bold 20px Arial";
         this.ctx.fillStyle = "white"
         this.ctx.textBaseline = "middle";
@@ -522,33 +521,33 @@ class Player extends AcGameObject {
         let x = 1.04, y = 0.9, r = 0.04;
         // 渲染火球技能图片
         this.render_skill_photo(scale, x, y, r, this.fireball_img);
-        // 渲染火球技能按键提示
+        // // 渲染火球技能按键提示
         this.render_skill_keyboard(scale, x, y, "Q");
-        // 渲染火球技能蒙板
+        // // 渲染火球技能蒙板
         this.render_skill_mask(scale, x, y, r, this.fireball_coldtime, 1);
 
         x = 1.15;
         // 渲染护盾技能图片
         this.render_skill_photo(scale, x, y, r, this.shield_img);
-        // 渲染护盾技能按键提示
+        // // 渲染护盾技能按键提示
         this.render_skill_keyboard(scale, x, y, "W");
-        // 渲染护盾技能蒙板
+        // // 渲染护盾技能蒙板
         this.render_skill_mask(scale, x, y, r, this.shield_coldtime, 10);
 
         x = 1.26;
         // 渲染冰球技能图片
         this.render_skill_photo(scale, x, y, r, this.iceball_img);
-        // 渲染冰球技能按键提示
+        // // 渲染冰球技能按键提示
         this.render_skill_keyboard(scale, x, y, "E");
-        // 渲染冰球技能蒙板
+        // // 渲染冰球技能蒙板
         this.render_skill_mask(scale, x, y, r, this.iceball_coldtime, 2);
 
         x = 1.37;
         // 渲染闪现技能图片
         this.render_skill_photo(scale, x, y, r, this.blink_img);
-        // 渲染闪现技能按键提示
+        // // 渲染闪现技能按键提示
         this.render_skill_keyboard(scale, x, y, "F");
-        // 渲染闪现技能蒙板
+        // // 渲染闪现技能蒙板
         this.render_skill_mask(scale, x, y, r, this.blink_coldtime, 4);
     }
 

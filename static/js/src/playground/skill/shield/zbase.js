@@ -33,14 +33,16 @@ class Shield extends AcGameObject {
             this.ctx.beginPath();
             this.ctx.arc(ctx_x * scale, ctx_y * scale, r1, 0, Math.PI * 2);
             this.ctx.arc(ctx_x * scale, ctx_y * scale, r2, 0, Math.PI * 2, true);
-            var gradient = this.ctx.createRadialGradient(ctx_x * scale, ctx_y * scale, r1, ctx_x * scale, ctx_y * scale, r2);
-            gradient.addColorStop(0, "#5587bb");                  //定义渐变色颜色
+            // 渐变色
+            let gradient = this.ctx.createRadialGradient(ctx_x * scale, ctx_y * scale, r1, ctx_x * scale, ctx_y * scale, r2);
+            gradient.addColorStop(0, "#5587bb");
             gradient.addColorStop(1, "#bc3acf");
             this.ctx.fillStyle = gradient;
             this.ctx.fill();
         } else if (this.player.is_shield && this.shield_pass_time > this.shield_duration_time) {
             this.player.is_shield = false;
             this.destroy(); // 护盾消失
+
         }
     }
 }
