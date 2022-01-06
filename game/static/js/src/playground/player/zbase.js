@@ -463,7 +463,7 @@ class Player extends AcGameObject {
     on_destroy() {
         // 玩家死亡从玩家列表中删除
         for (let i = 0; i < this.playground.players.length; i++) {
-            let player = this.playground.players[i]
+            let player = this.playground.players[i];
             if (player === this) {
                 if (player.character === "robot") {
                     clearInterval(player.random_position_timerId); // 清除5s定时更新随机位置

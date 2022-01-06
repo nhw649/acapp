@@ -34,17 +34,23 @@ class Setting {
     }
 
     add_listening_events() {
+        if (this.$audio[0].muted) {
+            this.$voice.text("声音:关");
+        } else {
+            this.$voice.text("声音:开");
+        }
+
         this.$setting_back.click(() => { // 返回
             this.hide();
             this.root.menu.show();
         });
 
         this.$voice.click(() => { // 控制声音开关
-            if (this.$audio[0].paused) {
-                this.$audio[0].play();
+            if (this.$audio[0].muted) {
+                this.$audio[0].muted = false;
                 this.$voice.text("声音:开");
             } else {
-                this.$audio[0].pause();
+                this.$audio[0].muted = true;
                 this.$voice.text("声音:关");
             }
         });

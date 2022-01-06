@@ -21,7 +21,7 @@ class CountDown extends AcGameObject {
     }
 
     render() {
-        if (this.playground.mode === "multi mode" && this.playground.players.length !== this.playground.join_player_total) {
+        if (this.playground.mode === "multi mode" && this.playground.players.length < this.playground.join_player_total) {
             // 多人模式玩家处于准备时不能开始倒计时
             return false;
         }

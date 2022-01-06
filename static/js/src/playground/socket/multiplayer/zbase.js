@@ -20,17 +20,6 @@ class MultiPlayerSocket {
         return null;
     }
 
-    // get_ball(uuid, player) {
-    //     let balls = player.skills;
-    //     for (let i = 0; i < balls.length; i++) {
-    //         let ball = balls[i];
-    //         if (ball.uuid === uuid) {
-    //             return ball;
-    //         }
-    //     }
-    //     return null;
-    // }
-
     receive() {
         this.ws.onmessage = ((e) => { // 接收服务器发送的消息
             let data = JSON.parse(e.data);

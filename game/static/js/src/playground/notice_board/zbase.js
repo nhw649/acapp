@@ -12,10 +12,6 @@ class NoticeBoard extends AcGameObject {
 
     write(text) { // 修改提示板文字
         this.text = text;
-        // 删除监听的准备中返回菜单事件
-        // if (this.playground.state !== "waiting") {
-        //     this.playground.off_cancel_waiting();
-        // }
     }
 
     update() {

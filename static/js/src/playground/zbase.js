@@ -90,20 +90,6 @@ class AcGamePlayground {
         if (this.mini_map) this.mini_map.resize(); // 小地图存在就调整一次界面
     }
 
-    // re_calculate_cx_cy(x, y) { // 调整位置
-    //     // 玩家离地图中心点的距离
-    //     this.cx = x - this.width / 2 / this.scale;
-    //     this.cy = y - this.height / 2 / this.scale;
-    //
-    //     let l = this.game_map.l; // 0.15
-    //     if (this.focus_player) {
-    //         this.cx = Math.max(this.cx, -2 * l);
-    //         this.cx = Math.min(this.cx, this.virtual_map_width - (this.width / this.scale - 2 * l));
-    //         this.cy = Math.max(this.cy, -l);
-    //         this.cy = Math.min(this.cy, this.virtual_map_height - (this.height / this.scale - l));
-    //     }
-    // }
-
     re_calculate_cx_cy(x = null, y = null) { // 调整位置
         // 玩家离地图中心点的距离
         if (x && y) {
@@ -120,24 +106,6 @@ class AcGamePlayground {
         this.cy = Math.max(this.cy, -l);
         this.cy = Math.min(this.cy, this.virtual_map_height - (this.height / this.scale - l));
     }
-
-    // add_cancel_waiting() { // 监听准备中返回菜单事件
-    //     if (this.game_map.$canvas) {
-    //         this.$canvas = this.game_map.$canvas;
-    //         this.$canvas.on('click.cancel', () => { // 点击任意键返回菜单
-    //             // this.mps.send_remove_player(this.root.settings.username);
-    //             this.hide();
-    //             this.root.menu.show();
-    //         })
-    //     }
-    // }
-
-    // off_cancel_waiting() { // 删除监听准备中返回菜单事件
-    //     if (this.game_map.$canvas) {
-    //         this.$canvas = this.game_map.$canvas;
-    //         this.$canvas.off('click.cancel');
-    //     }
-    // }
 
     show() {
         this.$playground.show(); // 显示游戏界面
@@ -160,6 +128,7 @@ class AcGamePlayground {
         this.game_map = new GameMap(this); // 创建游戏地图
         this.notice_board = new NoticeBoard(this); // 创建提示板
         this.score_board = new ScoreBoard(this); // 创建对局结束状态
+        this.sub_menu = new SubMenu(this); // 创建小菜单
         this.count_down = new CountDown(this); // 创建倒计时
 
         this.add_listening_events();
@@ -214,10 +183,6 @@ class AcGamePlayground {
                 this.mps.send_create_player(this.root.settings.username, this.root.skin.img_src || this.root.settings.photo, px, py, this.join_player_total);
             });
         }
-        // if (this.state === "waiting") {
-        //     this.add_cancel_waiting(); // 准备中返回菜单事件
-        // }
-
         // this.re_calculate_cx_cy(this.players[0].x, this.players[0].y); // 根据玩家位置确定画布相对于虚拟地图的偏移量
         // this.focus_player = this.players[0]; // 聚焦玩家是自己
         this.re_calculate_cx_cy();
@@ -227,10 +192,17 @@ class AcGamePlayground {
     }
 
     hide() {
-        // 删除玩家,不能使用for循环,会出现删除位置不匹配
+        // 删除玩家和技能,不能使用for循环,会出现删除位置不匹配
         while (this.players && this.players.length > 0) {
+            // 删除所有技能
+            for (let i = 0; i < this.players[0].skills.length; i++) {
+                let ball = this.players[0].skills[i];
+                ball.destroy();
+            }
+            // 删除玩家
             this.players[0].destroy(); // 会调用player的on_destroy,从玩家列表中删除
         }
+
         // 删除notice_board
         if (this.notice_board) {
             this.notice_board.destroy();
@@ -240,6 +212,14 @@ class AcGamePlayground {
         if (this.score_board) {
             this.score_board.destroy();
             this.score_board = null;
+        }
+        // 删除sub_menu
+        if (this.sub_menu) {
+            this.sub_menu = null;
+        }
+        // 删除chat_field
+        if (this.chat_field) {
+            this.chat_field = null;
         }
         // 删除game_map
         if (this.game_map) {
