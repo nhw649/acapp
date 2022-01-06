@@ -6,9 +6,9 @@ class ScoreBoard extends AcGameObject {
         this.state = null; // 对局结束状态 win/lose
         // 对局结束状态图片
         this.win_img = new Image();
-        this.win_img.src = "https://django-acapp.oss-cn-beijing.aliyuncs.com/playground/score-board/win.png"
+        this.win_img.src = "https://app372.acapp.acwing.com.cn/static/image/playground/score_board/win.png"
         this.lose_img = new Image();
-        this.lose_img.src = "https://django-acapp.oss-cn-beijing.aliyuncs.com/playground/score-board/lose.png"
+        this.lose_img.src = "https://app372.acapp.acwing.com.cn/static/image/playground/score_board/lose.png"
         this.close_draw_img = false;
     }
 

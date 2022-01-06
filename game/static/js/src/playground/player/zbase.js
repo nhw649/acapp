@@ -36,7 +36,7 @@ class Player extends AcGameObject {
 
         // 创建图片渲染头像皮肤
         this.img = new Image();
-        this.img.src = this.photo || "https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fae01.alicdn.com%2Fkf%2FH544f69316f7941e0aa8e16ddb0957367F.jpg&refer=http%3A%2F%2Fae01.alicdn.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1643330881&t=6141465282424729b082d7b3f5e29b89";
+        this.img.src = this.photo || "https://app372.acapp.acwing.com.cn/static/image/playground/player/robot.png";
 
         if (this.character === "me") { // 是自己才有冷却时间
             // 一开始便可以释放技能
@@ -46,16 +46,16 @@ class Player extends AcGameObject {
             this.blink_coldtime = 0; // 闪现冷却时间
             // 创建技能图片
             this.fireball_img = new Image();
-            this.fireball_img.src = "https://game.gtimg.cn/images/lol/act/img/spell/AnnieQ.png";
+            this.fireball_img.src = "https://app372.acapp.acwing.com.cn/static/image/playground/skill/fireball.png";
 
             this.shield_img = new Image();
-            this.shield_img.src = "https://game.gtimg.cn/images/lol/act/img/spell/MorganaE.png";
+            this.shield_img.src = "https://app372.acapp.acwing.com.cn/static/image/playground/skill/shield.png";
 
             this.iceball_img = new Image();
-            this.iceball_img.src = "https://game.gtimg.cn/images/lol/act/img/spell/NunuW.png";
+            this.iceball_img.src = "https://app372.acapp.acwing.com.cn/static/image/playground/skill/iceball.png";
 
             this.blink_img = new Image();
-            this.blink_img.src = "https://django-acapp.oss-cn-beijing.aliyuncs.com/playground/skill/blink.png";
+            this.blink_img.src = "https://app372.acapp.acwing.com.cn/static/image/playground/skill/blink.png";
         }
     }
 
@@ -483,6 +483,7 @@ class Player extends AcGameObject {
     render_skill_photo(scale, x, y, r, img) { // 渲染技能图片
         this.ctx.save();
         this.ctx.beginPath();
+        this.ctx.strokeStyle = "black";
         this.ctx.arc(x * scale, y * scale, r * scale, 0, Math.PI * 2, false);
         this.ctx.stroke();
         this.ctx.clip();

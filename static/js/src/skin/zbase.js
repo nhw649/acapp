@@ -46,7 +46,7 @@ class Skin {
                       </div>
                     </div>
                     <div class="carousel-item">
-                      <img src="https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fpic71.nipic.com%2Ffile%2F20150708%2F2531170_112540524000_2.jpg&refer=http%3A%2F%2Fpic71.nipic.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=jpeg?sec=1643209349&t=a16aeb09adb0eb09ad3a978de31f09f8" class="d-block">
+                      <img src="https://app372.acapp.acwing.com.cn/static/image/skin/random_skin.png" class="d-block">
                       <div class="carousel-caption d-none d-md-block">
                         <h3>随机</h3>
                         <p>随机皮肤</p>
